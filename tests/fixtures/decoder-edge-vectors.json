@@ -1,0 +1,1563 @@
+[
+  {
+    "label": "missing",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+ZWRnZSBjYWbDqSDwn4yNPC9wPjwvYm9keT4=",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "",
+    "assigned_body": "<body><p>edge café 🌍</p></body>",
+    "decoding_failure": false
+  },
+  {
+    "label": "missing",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "77u/PGJvZHk+PHA+Qk9NPC9wPjwvYm9keT4=",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "",
+    "assigned_body": "﻿<body><p>BOM</p></body>",
+    "decoding_failure": false
+  },
+  {
+    "label": "missing",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "wqA8Ym9keT48cD5OQlNQPC9wPjwvYm9keT4=",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>NBSP</p></body>",
+    "decoding_failure": false
+  },
+  {
+    "label": "missing",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "4oCDPGJvZHk+PHA+RW0tc3BhY2U8L3A+PC9ib2R5Pg==",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>Em-space</p></body>",
+    "decoding_failure": false
+  },
+  {
+    "label": "missing",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+SW5jb21wbGV0ZQ==",
+    "body": "<body><p>Incomplete",
+    "selected_key": "",
+    "assigned_body": "<body><p>Incomplete",
+    "decoding_failure": false
+  },
+  {
+    "label": "missing",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+QTwvcD48L2JvZHk+PGRpdj5CPC9kaXY+",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "",
+    "assigned_body": "<body><p>A</p></body><div>B</div>",
+    "decoding_failure": false
+  },
+  {
+    "label": "missing",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "PHA+Tm8gYm9keTwvcD4=",
+    "body": "<p>No body</p>",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": true
+  },
+  {
+    "label": "empty-array",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+ZWRnZSBjYWbDqSDwn4yNPC9wPjwvYm9keT4=",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "",
+    "assigned_body": "<body><p>edge café 🌍</p></body>",
+    "decoding_failure": false,
+    "native_key": []
+  },
+  {
+    "label": "empty-array",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "77u/PGJvZHk+PHA+Qk9NPC9wPjwvYm9keT4=",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "",
+    "assigned_body": "﻿<body><p>BOM</p></body>",
+    "decoding_failure": false,
+    "native_key": []
+  },
+  {
+    "label": "empty-array",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "wqA8Ym9keT48cD5OQlNQPC9wPjwvYm9keT4=",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>NBSP</p></body>",
+    "decoding_failure": false,
+    "native_key": []
+  },
+  {
+    "label": "empty-array",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "4oCDPGJvZHk+PHA+RW0tc3BhY2U8L3A+PC9ib2R5Pg==",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>Em-space</p></body>",
+    "decoding_failure": false,
+    "native_key": []
+  },
+  {
+    "label": "empty-array",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+SW5jb21wbGV0ZQ==",
+    "body": "<body><p>Incomplete",
+    "selected_key": "",
+    "assigned_body": "<body><p>Incomplete",
+    "decoding_failure": false,
+    "native_key": []
+  },
+  {
+    "label": "empty-array",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+QTwvcD48L2JvZHk+PGRpdj5CPC9kaXY+",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "",
+    "assigned_body": "<body><p>A</p></body><div>B</div>",
+    "decoding_failure": false,
+    "native_key": []
+  },
+  {
+    "label": "empty-array",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "PHA+Tm8gYm9keTwvcD4=",
+    "body": "<p>No body</p>",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": true,
+    "native_key": []
+  },
+  {
+    "label": "empty-string",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+ZWRnZSBjYWbDqSDwn4yNPC9wPjwvYm9keT4=",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "",
+    "assigned_body": "<body><p>edge café 🌍</p></body>",
+    "decoding_failure": false,
+    "native_key": ""
+  },
+  {
+    "label": "empty-string",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "77u/PGJvZHk+PHA+Qk9NPC9wPjwvYm9keT4=",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "",
+    "assigned_body": "﻿<body><p>BOM</p></body>",
+    "decoding_failure": false,
+    "native_key": ""
+  },
+  {
+    "label": "empty-string",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "wqA8Ym9keT48cD5OQlNQPC9wPjwvYm9keT4=",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>NBSP</p></body>",
+    "decoding_failure": false,
+    "native_key": ""
+  },
+  {
+    "label": "empty-string",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "4oCDPGJvZHk+PHA+RW0tc3BhY2U8L3A+PC9ib2R5Pg==",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>Em-space</p></body>",
+    "decoding_failure": false,
+    "native_key": ""
+  },
+  {
+    "label": "empty-string",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+SW5jb21wbGV0ZQ==",
+    "body": "<body><p>Incomplete",
+    "selected_key": "",
+    "assigned_body": "<body><p>Incomplete",
+    "decoding_failure": false,
+    "native_key": ""
+  },
+  {
+    "label": "empty-string",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+QTwvcD48L2JvZHk+PGRpdj5CPC9kaXY+",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "",
+    "assigned_body": "<body><p>A</p></body><div>B</div>",
+    "decoding_failure": false,
+    "native_key": ""
+  },
+  {
+    "label": "empty-string",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "PHA+Tm8gYm9keTwvcD4=",
+    "body": "<p>No body</p>",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": true,
+    "native_key": ""
+  },
+  {
+    "label": "string-native",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "OEGrUBd#G>6}MIC^IA/VDAK,X9)[QtZ./!tS+DPN0Cl?8&ck",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "1",
+    "assigned_body": "<body><p>edge café 🌍</p></body>",
+    "decoding_failure": false,
+    "native_key": "1049"
+  },
+  {
+    "label": "string-native",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "65r+KACnQ>`}C:2y@Y&:;-\"_7P\\Z<OxKD2ow",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "1",
+    "assigned_body": "﻿<body><p>BOM</p></body>",
+    "decoding_failure": false,
+    "native_key": "1049"
+  },
+  {
+    "label": "string-native",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "vo>4Tg2c\\J),V6&?@Z;=;-\"_7P\\Z<OxKD2ow",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "1",
+    "assigned_body": " <body><p>NBSP</p></body>",
+    "decoding_failure": false,
+    "native_key": "1049"
+  },
+  {
+    "label": "string-native",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "3m@@KACnQ>`}C:2yAE{`N{+P@v:z/s\"i/!tE=j+k'=po",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "1",
+    "assigned_body": " <body><p>Em-space</p></body>",
+    "decoding_failure": false,
+    "native_key": "1049"
+  },
+  {
+    "label": "string-native",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "OEGrUBd#G>6}FI&ZQ |cM1?vA7\"!",
+    "body": "<body><p>Incomplete",
+    "selected_key": "1",
+    "assigned_body": "<body><p>Incomplete",
+    "decoding_failure": false,
+    "native_key": "1049"
+  },
+  {
+    "label": "string-native",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "OEGrUBd#G>6}DFhfR2!$7z3^A.Pm3)3PCHp}+{pC8..]",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "1",
+    "assigned_body": "<body><p>A</p></body><div>B</div>",
+    "decoding_failure": false,
+    "native_key": "1049"
+  },
+  {
+    "label": "string-native",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "OF>'Og1_Pc._XFhfR2!)",
+    "body": "<p>No body</p>",
+    "selected_key": "1",
+    "assigned_body": null,
+    "decoding_failure": true,
+    "native_key": "1049"
+  },
+  {
+    "label": "multiple-keys",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "OGDjUHayGH3uMW@VIS,NDWH$XS&SQ4W&/CqK+jMF0mi78T`c",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "1049",
+    "assigned_body": "<body><p>edge café 🌍</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      "1049",
+      "99999"
+    ]
+  },
+  {
+    "label": "multiple-keys",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "67o#KG@fQH]uCH/q@k#2;C}W7jYR<muCDTlo",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "1049",
+    "assigned_body": "﻿<body><p>BOM</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      "1049",
+      "99999"
+    ]
+  },
+  {
+    "label": "multiple-keys",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "vq;,Tm/[\\T&$VD#7@l85;C}W7jYR<muCDTlo",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "1049",
+    "assigned_body": " <body><p>NBSP</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      "1049",
+      "99999"
+    ]
+  },
+  {
+    "label": "multiple-keys",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "3o=8KG@fQH]uCH/qAWxXN3(H@27r/3}a/Cq==2(c'gmg",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "1049",
+    "assigned_body": " <body><p>Em-space</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      "1049",
+      "99999"
+    ]
+  },
+  {
+    "label": "multiple-keys",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "OGDjUHayGH3uFW#RQ2y[MG<nAQ}w",
+    "body": "<body><p>Incomplete",
+    "selected_key": "1049",
+    "assigned_body": "<body><p>Incomplete",
+    "decoding_failure": false,
+    "native_key": [
+      "1049",
+      "99999"
+    ]
+  },
+  {
+    "label": "multiple-keys",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "OGDjUHayGH3uDTe^RD|z720VAHMe3G0HCjmu+Cm;8X+U",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "1049",
+    "assigned_body": "<body><p>A</p></body><div>B</div>",
+    "decoding_failure": false,
+    "native_key": [
+      "1049",
+      "99999"
+    ]
+  },
+  {
+    "label": "multiple-keys",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "OH;}Om.WPm+WXTe^RD|!",
+    "body": "<p>No body</p>",
+    "selected_key": "1049",
+    "assigned_body": null,
+    "decoding_failure": true,
+    "native_key": [
+      "1049",
+      "99999"
+    ]
+  },
+  {
+    "label": "number-native",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+ZWRnZSBjYWbDqSDwn4yNPC9wPjwvYm9keT4=",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "",
+    "assigned_body": "<body><p>edge café 🌍</p></body>",
+    "decoding_failure": false,
+    "native_key": 1049
+  },
+  {
+    "label": "number-native",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "77u/PGJvZHk+PHA+Qk9NPC9wPjwvYm9keT4=",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "",
+    "assigned_body": "﻿<body><p>BOM</p></body>",
+    "decoding_failure": false,
+    "native_key": 1049
+  },
+  {
+    "label": "number-native",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "wqA8Ym9keT48cD5OQlNQPC9wPjwvYm9keT4=",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>NBSP</p></body>",
+    "decoding_failure": false,
+    "native_key": 1049
+  },
+  {
+    "label": "number-native",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "4oCDPGJvZHk+PHA+RW0tc3BhY2U8L3A+PC9ib2R5Pg==",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>Em-space</p></body>",
+    "decoding_failure": false,
+    "native_key": 1049
+  },
+  {
+    "label": "number-native",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+SW5jb21wbGV0ZQ==",
+    "body": "<body><p>Incomplete",
+    "selected_key": "",
+    "assigned_body": "<body><p>Incomplete",
+    "decoding_failure": false,
+    "native_key": 1049
+  },
+  {
+    "label": "number-native",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+QTwvcD48L2JvZHk+PGRpdj5CPC9kaXY+",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "",
+    "assigned_body": "<body><p>A</p></body><div>B</div>",
+    "decoding_failure": false,
+    "native_key": 1049
+  },
+  {
+    "label": "number-native",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "PHA+Tm8gYm9keTwvcD4=",
+    "body": "<p>No body</p>",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": true,
+    "native_key": 1049
+  },
+  {
+    "label": "boolean-native",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+ZWRnZSBjYWbDqSDwn4yNPC9wPjwvYm9keT4=",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "",
+    "assigned_body": "<body><p>edge café 🌍</p></body>",
+    "decoding_failure": false,
+    "native_key": true
+  },
+  {
+    "label": "boolean-native",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "77u/PGJvZHk+PHA+Qk9NPC9wPjwvYm9keT4=",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "",
+    "assigned_body": "﻿<body><p>BOM</p></body>",
+    "decoding_failure": false,
+    "native_key": true
+  },
+  {
+    "label": "boolean-native",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "wqA8Ym9keT48cD5OQlNQPC9wPjwvYm9keT4=",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>NBSP</p></body>",
+    "decoding_failure": false,
+    "native_key": true
+  },
+  {
+    "label": "boolean-native",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "4oCDPGJvZHk+PHA+RW0tc3BhY2U8L3A+PC9ib2R5Pg==",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>Em-space</p></body>",
+    "decoding_failure": false,
+    "native_key": true
+  },
+  {
+    "label": "boolean-native",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+SW5jb21wbGV0ZQ==",
+    "body": "<body><p>Incomplete",
+    "selected_key": "",
+    "assigned_body": "<body><p>Incomplete",
+    "decoding_failure": false,
+    "native_key": true
+  },
+  {
+    "label": "boolean-native",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+QTwvcD48L2JvZHk+PGRpdj5CPC9kaXY+",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "",
+    "assigned_body": "<body><p>A</p></body><div>B</div>",
+    "decoding_failure": false,
+    "native_key": true
+  },
+  {
+    "label": "boolean-native",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "PHA+Tm8gYm9keTwvcD4=",
+    "body": "<p>No body</p>",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": true,
+    "native_key": true
+  },
+  {
+    "label": "null-native",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+ZWRnZSBjYWbDqSDwn4yNPC9wPjwvYm9keT4=",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "",
+    "assigned_body": "<body><p>edge café 🌍</p></body>",
+    "decoding_failure": false,
+    "native_key": null
+  },
+  {
+    "label": "null-native",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "77u/PGJvZHk+PHA+Qk9NPC9wPjwvYm9keT4=",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "",
+    "assigned_body": "﻿<body><p>BOM</p></body>",
+    "decoding_failure": false,
+    "native_key": null
+  },
+  {
+    "label": "null-native",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "wqA8Ym9keT48cD5OQlNQPC9wPjwvYm9keT4=",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>NBSP</p></body>",
+    "decoding_failure": false,
+    "native_key": null
+  },
+  {
+    "label": "null-native",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "4oCDPGJvZHk+PHA+RW0tc3BhY2U8L3A+PC9ib2R5Pg==",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>Em-space</p></body>",
+    "decoding_failure": false,
+    "native_key": null
+  },
+  {
+    "label": "null-native",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+SW5jb21wbGV0ZQ==",
+    "body": "<body><p>Incomplete",
+    "selected_key": "",
+    "assigned_body": "<body><p>Incomplete",
+    "decoding_failure": false,
+    "native_key": null
+  },
+  {
+    "label": "null-native",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+QTwvcD48L2JvZHk+PGRpdj5CPC9kaXY+",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "",
+    "assigned_body": "<body><p>A</p></body><div>B</div>",
+    "decoding_failure": false,
+    "native_key": null
+  },
+  {
+    "label": "null-native",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "PHA+Tm8gYm9keTwvcD4=",
+    "body": "<p>No body</p>",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": true,
+    "native_key": null
+  },
+  {
+    "label": "number-selected",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+ZWRnZSBjYWbDqSDwn4yNPC9wPjwvYm9keT4=",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "",
+    "assigned_body": "<body><p>edge café 🌍</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      1049
+    ]
+  },
+  {
+    "label": "number-selected",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "77u/PGJvZHk+PHA+Qk9NPC9wPjwvYm9keT4=",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "",
+    "assigned_body": "﻿<body><p>BOM</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      1049
+    ]
+  },
+  {
+    "label": "number-selected",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "wqA8Ym9keT48cD5OQlNQPC9wPjwvYm9keT4=",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>NBSP</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      1049
+    ]
+  },
+  {
+    "label": "number-selected",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "4oCDPGJvZHk+PHA+RW0tc3BhY2U8L3A+PC9ib2R5Pg==",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>Em-space</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      1049
+    ]
+  },
+  {
+    "label": "number-selected",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+SW5jb21wbGV0ZQ==",
+    "body": "<body><p>Incomplete",
+    "selected_key": "",
+    "assigned_body": "<body><p>Incomplete",
+    "decoding_failure": false,
+    "native_key": [
+      1049
+    ]
+  },
+  {
+    "label": "number-selected",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+QTwvcD48L2JvZHk+PGRpdj5CPC9kaXY+",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "",
+    "assigned_body": "<body><p>A</p></body><div>B</div>",
+    "decoding_failure": false,
+    "native_key": [
+      1049
+    ]
+  },
+  {
+    "label": "number-selected",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "PHA+Tm8gYm9keTwvcD4=",
+    "body": "<p>No body</p>",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": true,
+    "native_key": [
+      1049
+    ]
+  },
+  {
+    "label": "boolean-selected",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+ZWRnZSBjYWbDqSDwn4yNPC9wPjwvYm9keT4=",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "",
+    "assigned_body": "<body><p>edge café 🌍</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      true
+    ]
+  },
+  {
+    "label": "boolean-selected",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "77u/PGJvZHk+PHA+Qk9NPC9wPjwvYm9keT4=",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "",
+    "assigned_body": "﻿<body><p>BOM</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      true
+    ]
+  },
+  {
+    "label": "boolean-selected",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "wqA8Ym9keT48cD5OQlNQPC9wPjwvYm9keT4=",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>NBSP</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      true
+    ]
+  },
+  {
+    "label": "boolean-selected",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "4oCDPGJvZHk+PHA+RW0tc3BhY2U8L3A+PC9ib2R5Pg==",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>Em-space</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      true
+    ]
+  },
+  {
+    "label": "boolean-selected",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+SW5jb21wbGV0ZQ==",
+    "body": "<body><p>Incomplete",
+    "selected_key": "",
+    "assigned_body": "<body><p>Incomplete",
+    "decoding_failure": false,
+    "native_key": [
+      true
+    ]
+  },
+  {
+    "label": "boolean-selected",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+QTwvcD48L2JvZHk+PGRpdj5CPC9kaXY+",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "",
+    "assigned_body": "<body><p>A</p></body><div>B</div>",
+    "decoding_failure": false,
+    "native_key": [
+      true
+    ]
+  },
+  {
+    "label": "boolean-selected",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "PHA+Tm8gYm9keTwvcD4=",
+    "body": "<p>No body</p>",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": true,
+    "native_key": [
+      true
+    ]
+  },
+  {
+    "label": "null-selected",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+ZWRnZSBjYWbDqSDwn4yNPC9wPjwvYm9keT4=",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "",
+    "assigned_body": "<body><p>edge café 🌍</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      null
+    ]
+  },
+  {
+    "label": "null-selected",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "77u/PGJvZHk+PHA+Qk9NPC9wPjwvYm9keT4=",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "",
+    "assigned_body": "﻿<body><p>BOM</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      null
+    ]
+  },
+  {
+    "label": "null-selected",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "wqA8Ym9keT48cD5OQlNQPC9wPjwvYm9keT4=",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>NBSP</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      null
+    ]
+  },
+  {
+    "label": "null-selected",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "4oCDPGJvZHk+PHA+RW0tc3BhY2U8L3A+PC9ib2R5Pg==",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>Em-space</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      null
+    ]
+  },
+  {
+    "label": "null-selected",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+SW5jb21wbGV0ZQ==",
+    "body": "<body><p>Incomplete",
+    "selected_key": "",
+    "assigned_body": "<body><p>Incomplete",
+    "decoding_failure": false,
+    "native_key": [
+      null
+    ]
+  },
+  {
+    "label": "null-selected",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+QTwvcD48L2JvZHk+PGRpdj5CPC9kaXY+",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "",
+    "assigned_body": "<body><p>A</p></body><div>B</div>",
+    "decoding_failure": false,
+    "native_key": [
+      null
+    ]
+  },
+  {
+    "label": "null-selected",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "PHA+Tm8gYm9keTwvcD4=",
+    "body": "<p>No body</p>",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": true,
+    "native_key": [
+      null
+    ]
+  },
+  {
+    "label": "object-selected",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+ZWRnZSBjYWbDqSDwn4yNPC9wPjwvYm9keT4=",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "",
+    "assigned_body": "<body><p>edge café 🌍</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      {}
+    ]
+  },
+  {
+    "label": "object-selected",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "77u/PGJvZHk+PHA+Qk9NPC9wPjwvYm9keT4=",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "",
+    "assigned_body": "﻿<body><p>BOM</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      {}
+    ]
+  },
+  {
+    "label": "object-selected",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "wqA8Ym9keT48cD5OQlNQPC9wPjwvYm9keT4=",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>NBSP</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      {}
+    ]
+  },
+  {
+    "label": "object-selected",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "4oCDPGJvZHk+PHA+RW0tc3BhY2U8L3A+PC9ib2R5Pg==",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>Em-space</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      {}
+    ]
+  },
+  {
+    "label": "object-selected",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+SW5jb21wbGV0ZQ==",
+    "body": "<body><p>Incomplete",
+    "selected_key": "",
+    "assigned_body": "<body><p>Incomplete",
+    "decoding_failure": false,
+    "native_key": [
+      {}
+    ]
+  },
+  {
+    "label": "object-selected",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+QTwvcD48L2JvZHk+PGRpdj5CPC9kaXY+",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "",
+    "assigned_body": "<body><p>A</p></body><div>B</div>",
+    "decoding_failure": false,
+    "native_key": [
+      {}
+    ]
+  },
+  {
+    "label": "object-selected",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "PHA+Tm8gYm9keTwvcD4=",
+    "body": "<p>No body</p>",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": true,
+    "native_key": [
+      {}
+    ]
+  },
+  {
+    "label": "empty-array-selected",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+ZWRnZSBjYWbDqSDwn4yNPC9wPjwvYm9keT4=",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "",
+    "assigned_body": "<body><p>edge café 🌍</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      []
+    ]
+  },
+  {
+    "label": "empty-array-selected",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "77u/PGJvZHk+PHA+Qk9NPC9wPjwvYm9keT4=",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "",
+    "assigned_body": "﻿<body><p>BOM</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      []
+    ]
+  },
+  {
+    "label": "empty-array-selected",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "wqA8Ym9keT48cD5OQlNQPC9wPjwvYm9keT4=",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>NBSP</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      []
+    ]
+  },
+  {
+    "label": "empty-array-selected",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "4oCDPGJvZHk+PHA+RW0tc3BhY2U8L3A+PC9ib2R5Pg==",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "",
+    "assigned_body": " <body><p>Em-space</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      []
+    ]
+  },
+  {
+    "label": "empty-array-selected",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+SW5jb21wbGV0ZQ==",
+    "body": "<body><p>Incomplete",
+    "selected_key": "",
+    "assigned_body": "<body><p>Incomplete",
+    "decoding_failure": false,
+    "native_key": [
+      []
+    ]
+  },
+  {
+    "label": "empty-array-selected",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+QTwvcD48L2JvZHk+PGRpdj5CPC9kaXY+",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "",
+    "assigned_body": "<body><p>A</p></body><div>B</div>",
+    "decoding_failure": false,
+    "native_key": [
+      []
+    ]
+  },
+  {
+    "label": "empty-array-selected",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "PHA+Tm8gYm9keTwvcD4=",
+    "body": "<p>No body</p>",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": true,
+    "native_key": [
+      []
+    ]
+  },
+  {
+    "label": "nested-array-selected",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+ZWRnZSBjYWbDqSDwn4yNPC9wPjwvYm9keT4=",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": false,
+    "native_key": [
+      [
+        1
+      ]
+    ],
+    "setup_error": "TypeError"
+  },
+  {
+    "label": "nested-array-selected",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "77u/PGJvZHk+PHA+Qk9NPC9wPjwvYm9keT4=",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": false,
+    "native_key": [
+      [
+        1
+      ]
+    ],
+    "setup_error": "TypeError"
+  },
+  {
+    "label": "nested-array-selected",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "wqA8Ym9keT48cD5OQlNQPC9wPjwvYm9keT4=",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": false,
+    "native_key": [
+      [
+        1
+      ]
+    ],
+    "setup_error": "TypeError"
+  },
+  {
+    "label": "nested-array-selected",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "4oCDPGJvZHk+PHA+RW0tc3BhY2U8L3A+PC9ib2R5Pg==",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": false,
+    "native_key": [
+      [
+        1
+      ]
+    ],
+    "setup_error": "TypeError"
+  },
+  {
+    "label": "nested-array-selected",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+SW5jb21wbGV0ZQ==",
+    "body": "<body><p>Incomplete",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": false,
+    "native_key": [
+      [
+        1
+      ]
+    ],
+    "setup_error": "TypeError"
+  },
+  {
+    "label": "nested-array-selected",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "PGJvZHk+PHA+QTwvcD48L2JvZHk+PGRpdj5CPC9kaXY+",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": false,
+    "native_key": [
+      [
+        1
+      ]
+    ],
+    "setup_error": "TypeError"
+  },
+  {
+    "label": "nested-array-selected",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "PHA+Tm8gYm9keTwvcD4=",
+    "body": "<p>No body</p>",
+    "selected_key": "",
+    "assigned_body": null,
+    "decoding_failure": false,
+    "native_key": [
+      [
+        1
+      ]
+    ],
+    "setup_error": "TypeError"
+  },
+  {
+    "label": "array-like-native",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "OGDjUHayGH3uMW@VIS,NDWH$XS&SQ4W&/CqK+jMF0mi78T`c",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "1049",
+    "assigned_body": "<body><p>edge café 🌍</p></body>",
+    "decoding_failure": false,
+    "native_key": {
+      "0": "1049"
+    }
+  },
+  {
+    "label": "array-like-native",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "67o#KG@fQH]uCH/q@k#2;C}W7jYR<muCDTlo",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "1049",
+    "assigned_body": "﻿<body><p>BOM</p></body>",
+    "decoding_failure": false,
+    "native_key": {
+      "0": "1049"
+    }
+  },
+  {
+    "label": "array-like-native",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "vq;,Tm/[\\T&$VD#7@l85;C}W7jYR<muCDTlo",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "1049",
+    "assigned_body": " <body><p>NBSP</p></body>",
+    "decoding_failure": false,
+    "native_key": {
+      "0": "1049"
+    }
+  },
+  {
+    "label": "array-like-native",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "3o=8KG@fQH]uCH/qAWxXN3(H@27r/3}a/Cq==2(c'gmg",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "1049",
+    "assigned_body": " <body><p>Em-space</p></body>",
+    "decoding_failure": false,
+    "native_key": {
+      "0": "1049"
+    }
+  },
+  {
+    "label": "array-like-native",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "OGDjUHayGH3uFW#RQ2y[MG<nAQ}w",
+    "body": "<body><p>Incomplete",
+    "selected_key": "1049",
+    "assigned_body": "<body><p>Incomplete",
+    "decoding_failure": false,
+    "native_key": {
+      "0": "1049"
+    }
+  },
+  {
+    "label": "array-like-native",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "OGDjUHayGH3uDTe^RD|z720VAHMe3G0HCjmu+Cm;8X+U",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "1049",
+    "assigned_body": "<body><p>A</p></body><div>B</div>",
+    "decoding_failure": false,
+    "native_key": {
+      "0": "1049"
+    }
+  },
+  {
+    "label": "array-like-native",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "OH;}Om.WPm+WXTe^RD|!",
+    "body": "<p>No body</p>",
+    "selected_key": "1049",
+    "assigned_body": null,
+    "decoding_failure": true,
+    "native_key": {
+      "0": "1049"
+    }
+  },
+  {
+    "label": "invalid-digit",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "OGDjUHayGH3uMW@VIS,NDWH$XS&SQ4W&/CqK+jMF0mi78T`c",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "1x49",
+    "assigned_body": "<body><p>edge café 🌍</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      "1x49"
+    ]
+  },
+  {
+    "label": "invalid-digit",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "67o#KG@fQH]uCH/q@k#2;C}W7jYR<muCDTlo",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "1x49",
+    "assigned_body": "﻿<body><p>BOM</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      "1x49"
+    ]
+  },
+  {
+    "label": "invalid-digit",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "vq;,Tm/[\\T&$VD#7@l85;C}W7jYR<muCDTlo",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "1x49",
+    "assigned_body": " <body><p>NBSP</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      "1x49"
+    ]
+  },
+  {
+    "label": "invalid-digit",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "3o=8KG@fQH]uCH/qAWxXN3(H@27r/3}a/Cq==2(c'gmg",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "1x49",
+    "assigned_body": " <body><p>Em-space</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      "1x49"
+    ]
+  },
+  {
+    "label": "invalid-digit",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "OGDjUHayGH3uFW#RQ2y[MG<nAQ}w",
+    "body": "<body><p>Incomplete",
+    "selected_key": "1x49",
+    "assigned_body": "<body><p>Incomplete",
+    "decoding_failure": false,
+    "native_key": [
+      "1x49"
+    ]
+  },
+  {
+    "label": "invalid-digit",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "OGDjUHayGH3uDTe^RD|z720VAHMe3G0HCjmu+Cm;8X+U",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "1x49",
+    "assigned_body": "<body><p>A</p></body><div>B</div>",
+    "decoding_failure": false,
+    "native_key": [
+      "1x49"
+    ]
+  },
+  {
+    "label": "invalid-digit",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "OH;}Om.WPm+WXTe^RD|!",
+    "body": "<p>No body</p>",
+    "selected_key": "1x49",
+    "assigned_body": null,
+    "decoding_failure": true,
+    "native_key": [
+      "1x49"
+    ]
+  },
+  {
+    "label": "unicode-key",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "PBJoZ?k P;AzZFR[Z>BSY>b)q6DXnqy+P|9PPAwKY@9<e#4h",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "١4",
+    "assigned_body": "<body><p>edge café 🌍</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      "١4"
+    ]
+  },
+  {
+    "label": "unicode-key",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "72u(P>JkZ;kzP7AvQV97P*9\\PMwWYL9He/4t",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "١4",
+    "assigned_body": "﻿<body><p>BOM</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      "١4"
+    ]
+  },
+  {
+    "label": "unicode-key",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "wlA1Yd9`eG4)c35<QWN:P*9\\PMwWYL9He/4t",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "١4",
+    "assigned_body": " <body><p>NBSP</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      "١4"
+    ]
+  },
+  {
+    "label": "unicode-key",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "4jC=P>JkZ;kzP7AvRB0]cxBMYsUwLpAfP|9BbgRhP:=l",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "١4",
+    "assigned_body": " <body><p>Em-space</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      "١4"
+    ]
+  },
+  {
+    "label": "unicode-key",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "PBJoZ?k P;AzSF5Wb{1`b.VsZ4=|",
+    "body": "<body><p>Incomplete",
+    "selected_key": "١4",
+    "assigned_body": "<body><p>Incomplete",
+    "decoding_failure": false,
+    "native_key": [
+      "١4"
+    ]
+  },
+  {
+    "label": "unicode-key",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "PBJoZ?k P;AzQCwcc/4!LwJ[Z+kjP&RMdE5zPx9@a+YZ",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "١4",
+    "assigned_body": "<body><p>A</p></body><div>B</div>",
+    "decoding_failure": false,
+    "native_key": [
+      "١4"
+    ]
+  },
+  {
+    "label": "unicode-key",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "PCA$Td8\\Y`9\\eCwcc/4&",
+    "body": "<p>No body</p>",
+    "selected_key": "١4",
+    "assigned_body": null,
+    "decoding_failure": true,
+    "native_key": [
+      "١4"
+    ]
+  },
+  {
+    "label": "surrogate-key",
+    "body_case": "valid",
+    "kind": "3",
+    "payload": "PGDvZ?k+DHAzZW@nZ>BjAWb)qS&wnqyN,C9PPjMvY@9k5T4h",
+    "body": "<body><p>edge café 🌍</p></body>",
+    "selected_key": "😀4",
+    "assigned_body": "<body><p>edge café 🌍</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      "😀4"
+    ]
+  },
+  {
+    "label": "surrogate-key",
+    "body_case": "bom",
+    "kind": "3",
+    "payload": "77o/P>JvNHkzPH/+QV9N8C9\\PjYvYL9kAT4t",
+    "body": "﻿<body><p>BOM</p></body>",
+    "selected_key": "😀4",
+    "assigned_body": "﻿<body><p>BOM</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      "😀4"
+    ]
+  },
+  {
+    "label": "surrogate-key",
+    "body_case": "nbsp",
+    "kind": "3",
+    "payload": "wq;8Yd9kYT4)cD#OQWNQ8C9\\PjYvYL9kAT4t",
+    "body": " <body><p>NBSP</p></body>",
+    "selected_key": "😀4",
+    "assigned_body": " <body><p>NBSP</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      "😀4"
+    ]
+  },
+  {
+    "label": "surrogate-key",
+    "body_case": "unicode-space",
+    "kind": "3",
+    "payload": "4o=DP>JvNHkzPH/+RB0tK3BMY278LpA+,C9Bb2(5P:==",
+    "body": " <body><p>Em-space</p></body>",
+    "selected_key": "😀4",
+    "assigned_body": " <body><p>Em-space</p></body>",
+    "decoding_failure": false,
+    "native_key": [
+      "😀4"
+    ]
+  },
+  {
+    "label": "surrogate-key",
+    "body_case": "missing-close",
+    "kind": "3",
+    "payload": "PGDvZ?k+DHAzSW#jb{1wJGVsZQ}=",
+    "body": "<body><p>Incomplete",
+    "selected_key": "😀4",
+    "assigned_body": "<body><p>Incomplete",
+    "decoding_failure": false,
+    "native_key": [
+      "😀4"
+    ]
+  },
+  {
+    "label": "surrogate-key",
+    "body_case": "trailing-element",
+    "kind": "3",
+    "payload": "PGDvZ?k+DHAzQTevc/4842J[ZHM+P&Rp@j5zPCmka+Y+",
+    "body": "<body><p>A</p></body><div>B</div>",
+    "selected_key": "😀4",
+    "assigned_body": "<body><p>A</p></body><div>B</div>",
+    "decoding_failure": false,
+    "native_key": [
+      "😀4"
+    ]
+  },
+  {
+    "label": "surrogate-key",
+    "body_case": "missing-body",
+    "kind": "3",
+    "payload": "PH;+Td8gMm9\\eTevc/4=",
+    "body": "<p>No body</p>",
+    "selected_key": "😀4",
+    "assigned_body": null,
+    "decoding_failure": true,
+    "native_key": [
+      "😀4"
+    ]
+  }
+]

@@ -1,0 +1,16 @@
+KOLibby
+Copyright (C) 2026 KOLibby contributors
+SPDX-License-Identifier: AGPL-3.0-only
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License version 3 as published by
+the Free Software Foundation. This program is distributed without any warranty;
+see LICENSE for the full terms.
+
+Project and corresponding source: https://github.com/kolibby/KOLibby.koplugin
+
+Third-party software:
+- tests/support/dkjson.lua is David Heiko Kolf's dkjson, under its original MIT
+  license. Its copyright and license notice remain in that file. This test-only
+  dependency is not distributed in the plugin runtime ZIP. Production uses
+  KOReader's own bundled modules, with their respective upstream licenses.

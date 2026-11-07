@@ -1,0 +1,37 @@
+.DS_Store
+dist/
+.local/
+*.epub
+*.acsm
+*.apk
+*.zip
+*.log
+identity.json*
+cookies.txt
+kolibby-smoke-input.json
+luac.out
+*.mp3
+*.mp3.part
+
+# Local state, captures and personal artifacts never belong in source releases.
+.env
+.env.*
+private/
+.captures/
+artifacts/
+screenshots/
+*.har
+*.pcap
+*.pcapng
+*.db
+*.sqlite
+*.sqlite3
+shelf.json
+downloads.json
+config.json
+status.json
+progress.json
+borrow.json
+
+# Internal research and comparison material belongs outside the public tree.
+private-research/

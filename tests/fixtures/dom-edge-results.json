@@ -1,0 +1,32 @@
+[
+  {
+    "case": "valid",
+    "body": "<body><p>edge caf\u00e9 \ud83c\udf0d</p></body>",
+    "html": "<html><head><title>fixture</title></head><head></head><body><p>edge caf\u00e9 \ud83c\udf0d</p></body></html>"
+  },
+  {
+    "case": "bom",
+    "body": "<body>\ufeff<p>BOM</p></body>",
+    "html": "<html><head><title>fixture</title></head><head></head><body>\ufeff<p>BOM</p></body></html>"
+  },
+  {
+    "case": "nbsp",
+    "body": "<body>&nbsp;<p>NBSP</p></body>",
+    "html": "<html><head><title>fixture</title></head><head></head><body>&nbsp;<p>NBSP</p></body></html>"
+  },
+  {
+    "case": "unicode-space",
+    "body": "<body>\u2003<p>Em-space</p></body>",
+    "html": "<html><head><title>fixture</title></head><head></head><body>\u2003<p>Em-space</p></body></html>"
+  },
+  {
+    "case": "missing-close",
+    "body": "<body><p>Incomplete</p></body>",
+    "html": "<html><head><title>fixture</title></head><head></head><body><p>Incomplete</p></body></html>"
+  },
+  {
+    "case": "trailing-element",
+    "body": "<body><p>A</p><div>B</div></body>",
+    "html": "<html><head><title>fixture</title></head><head></head><body><p>A</p><div>B</div></body></html>"
+  }
+]
