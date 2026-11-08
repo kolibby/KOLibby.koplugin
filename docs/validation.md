@@ -1,6 +1,6 @@
 # Validation
 
-The portable Lua suite has 174 passing tests. It covers shelf reconciliation,
+The portable Lua suite has 184 passing tests. It covers shelf reconciliation,
 multiple and partner cards, download queuing, publication assembly, audiobook
 output, networking, privacy and update handling. Tests use synthetic data.
 
@@ -28,3 +28,7 @@ the fix and pass after it.
 The Android runtime also reproduces the old import failure with the legacy alias
 unavailable, then verifies storage and update checks using KOReader's bundled
 filesystem backend. The updated plugin appears at the top of the Tools menu.
+
+Portable regressions also cover relative data-folder migration, FAT-compatible
+resource cache names, background task completion and cancellation, progress
+write throttling, network diagnostics and the configured TLS modes.

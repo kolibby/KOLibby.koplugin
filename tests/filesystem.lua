@@ -1,6 +1,6 @@
 -- Copyright (C) 2026 KOLibby contributors
 -- SPDX-License-Identifier: AGPL-3.0-only
-return function(test,eq,fails)
+return function(test,eq,fails,contains)
 local function backend()
     local fs={mode_reads=0}
     function fs.attributes(path,field)
@@ -15,9 +15,11 @@ local function backend()
     function fs.mkdir() return true end
     function fs.dir() return function() end end
     function fs.rmdir() return true end
+    function fs.currentdir() return '/mnt/us/koreader' end
     return fs
 end
 local function environment(options)
+    options=options or {}
     local bundled,plain=backend(),backend()
     local modules,requests,registered={},{},{}
     local import
@@ -38,10 +40,11 @@ local function environment(options)
             if not modules[name] then modules[name]=load_source(name..'.lua') end
             return modules[name]
         elseif name=='ui/widget/container/widgetcontainer' then return {extend=function(_,value) return value end}
-        elseif name=='datastorage' then return {
+        elseif name=='datastorage' then return options.datastorage or {
             getSettingsDir=function() return '/__kolibby_test_missing_settings__' end,
             getDataDir=function() return '/__kolibby_test_missing_data__' end}
-        elseif name=='ui/uimanager' then return {scheduleIn=function() end}
+        elseif name=='ui/uimanager' then return options.uimanager or {scheduleIn=function() end}
+        elseif name=='ui/trapper' and options.trapper then return options.trapper
         elseif name:match('^ui/elements/.-_menu_order$') then return {tools={'read_timer','more_tools'}}
         elseif name:match('^ui/') or name=='device' then return {}
         else return require(name) end
@@ -91,5 +94,87 @@ end)
 test('Missing filesystem support remains an explicit startup error',function()
     local env=environment{}
     fails(env.start,"module 'lfs' not found")
+end)
+test('Kindle and Kobo default folders are absolute although KOReader data is "."',function()
+    local env=environment{bundled=true,datastorage={
+        getSettingsDir=function() return '/__kolibby_test_missing_settings__' end,
+        getDataDir=function() return '.' end,getFullDataDir=function() return '/mnt/us/koreader' end}}
+    local instance=env.start()
+    eq(instance.config.download_dir,'/mnt/us/koreader/KOLibby')
+    eq(instance.cache_dir,'/mnt/us/koreader/cache/kolibby');eq(instance.cover_dir,'/mnt/us/koreader/cache/kolibby/covers')
+    -- Older KOReader without getFullDataDir still gets absolute paths.
+    env=environment{bundled=true,datastorage={
+        getSettingsDir=function() return '/__kolibby_test_missing_settings__' end,getDataDir=function() return '.' end}}
+    eq(env.start().config.download_dir,'/mnt/us/koreader/KOLibby')
+end)
+test('Relative download folders and records saved by earlier versions become absolute once',function()
+    local env=environment{bundled=true}
+    local Plugin=env.start()
+    local writes={}
+    local state={config={interval_minutes=30,download_dir='./KOLibby'},
+        downloads={a={path='./KOLibby/a.epub'},b={path='/mnt/us/documents/b.epub'},c={kind='mp3'}},
+        store={write=function(_,name,value) writes[#writes+1]=name end}}
+    Plugin.migratePaths(state)
+    eq(state.config.download_dir,'/mnt/us/koreader/KOLibby')
+    eq(state.downloads.a.path,'/mnt/us/koreader/KOLibby/a.epub');eq(state.downloads.b.path,'/mnt/us/documents/b.epub')
+    eq(table.concat(writes,','),'config.json,downloads.json')
+    writes={};Plugin.migratePaths(state);eq(#writes,0)
+end)
+test('Input cannot cancel background sync; user actions and leaving the setup-code screen can',function()
+    local Coordinator=require('kolibby/coordinator')
+    local queue={}
+    local ui={scheduleIn=function(_,_,f) queue[#queue+1]=f end,
+        unschedule=function(_,f) for i=#queue,1,-1 do if queue[i]==f then table.remove(queue,i) end end end,
+        close=function() end,show=function() error('background work must not show a widget',0) end}
+    local function tick() local current=queue;queue={};for _,f in ipairs(current) do f() end end
+    local children={}
+    local util={}
+    function util.runInSubProcess(func)
+        if util.fail then return false,'fork failed' end
+        local child={pid=#children+1,func=func};children[child.pid]=child;return child.pid,child
+    end
+    function util.writeToFD(fd,data) fd.output=data;fd.done=true;return true end
+    function util.isSubProcessDone(pid) return children[pid].done==true end
+    function util.getNonBlockingReadSize(fd) return fd.output and #fd.output or 0 end
+    function util.readAllFromFD(fd) fd.closed=true;return fd.output or '' end
+    function util.terminateSubProcess(pid) children[pid].killed=true;children[pid].done=true end
+    local function finish(pid) local c=children[pid];c.func(pid,c) end
+    local wrapped=0
+    local saved_util=package.loaded['ffi/util'];package.loaded['ffi/util']=util
+    local ok,err=pcall(function()
+        local env=environment{bundled=true,uimanager=ui,trapper={wrap=function() wrapped=wrapped+1 end}}
+        local plugin=env.start();queue={}
+        local results={}
+        local function done(value,message) results[#results+1]={value=value,message=message} end
+        local function work() return {synced=true} end
+        -- Automatic sync: no trap widget, and it completes on its own.
+        plugin:runTask('Synchronizing',work,done,true)
+        eq(Coordinator.owner,plugin);eq(Coordinator.background.owner,plugin)
+        tick();tick();eq(#results,0)
+        finish(1);tick()
+        eq(#results,1);eq(results[1].value.synced,true);eq(Coordinator.owner,nil);eq(Coordinator.background,nil);assert(children[1].closed)
+        -- A user action replaces a running sync.
+        plugin:runTask('Synchronizing',work,done,true)
+        plugin:preemptBackground()
+        eq(results[2].message,'cancelled');assert(children[2].killed);eq(Coordinator.owner,nil);eq(Coordinator.background,nil)
+        finish(2);tick();tick();eq(#results,2)
+        plugin:runTask('Synchronizing',work,done,true)
+        plugin:runTask('Downloading EPUB…',work,done,false)
+        eq(results[3].message,'cancelled');assert(children[3].killed);eq(wrapped,1);eq(Coordinator.owner,plugin)
+        plugin.busy=false;Coordinator.release(plugin)
+        -- The setup-code poll survives other actions until its screen closes.
+        plugin.pairing={};Coordinator.pair_owner=plugin
+        plugin:runTask('Requesting a Libby setup code…',work,done,true)
+        plugin:preemptBackground();eq(#results,3);assert(not children[4].killed)
+        plugin:cancelPairing()
+        eq(results[4].message,'cancelled');assert(children[4].killed);eq(Coordinator.pair_owner,nil);eq(Coordinator.owner,nil)
+        -- A failed fork is reported as a failure, so automatic sync backs off.
+        util.fail=true
+        plugin:runTask('Synchronizing',work,done,true)
+        contains(results[5].message,'ended unexpectedly');eq(Coordinator.owner,nil);eq(Coordinator.background,nil)
+    end)
+    package.loaded['ffi/util']=saved_util
+    Coordinator.owner=nil;Coordinator.background=nil;Coordinator.pair_owner=nil
+    assert(ok,err)
 end)
 end

@@ -42,6 +42,17 @@ return function(ca_file,temporary_path)
         local untrusted=T.new()
         assert(not pcall(untrusted.request,untrusted,{url='https://localhost:19443/untrusted',headers={}}));untrusted:close()
     end)
+    -- Libby sessions use KOReader's unverified mode (verify=false).
+    test('unverified TLS accepts an untrusted certificate',function()
+        local plain=T.new{verify=false}
+        local r=plain:request{url='https://localhost:19443/identity',headers=P.headers('api',{},C.encodings())}
+        plain:close();assert(r.status==200 and r.body==expected)
+    end)
+    test('unverified TLS skips the hostname check',function()
+        local plain=T.new{verify=false}
+        local r=plain:request{url='https://127.0.0.1:19443/identity',headers=P.headers('api',{},C.encodings())}
+        plain:close();assert(r.status==200 and r.body==expected)
+    end)
     test('recovery after failure',function() assert(request('/identity').body==expected) end)
     client:close()
     return result

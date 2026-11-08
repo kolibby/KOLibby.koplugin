@@ -60,6 +60,8 @@ Update checks are manual and use a separate GitHub connection with no Libby cred
 
 Device credentials are stored locally in KOReader's settings directory, separately from shelf metadata, with restrictive permissions where the filesystem supports them. Shared Android storage does not provide a hardware-backed credential vault. **Disconnect this plugin** removes the saved connection and shelf; downloaded books remain in the download folder.
 
+Like KOReader's own network requests, KOLibby does not verify the HTTPS certificates of Libby's servers, so a wrong device clock cannot block it. On a network that intercepts HTTPS, the saved Libby connection could be exposed; use networks you trust. Update downloads from GitHub are always verified.
+
 Libby's service may change, which can affect compatibility. Support can vary by publication, library and KOReader device.
 
 ## Development

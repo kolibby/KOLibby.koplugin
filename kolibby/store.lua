@@ -39,6 +39,17 @@ function Store:save_auth(value) return self:write("identity.json",value) end
 function Store:forget()
     for _,name in ipairs({"identity.json","identity.json.tmp","identity.json.old","shelf.json","shelf.json.tmp","status.json","borrow.json","borrow.json.tmp"}) do os.remove(self.root.."/"..name) end
 end
+-- KOReader's data folder is "." on Kindle and Kobo. Resolve such paths against
+-- the working directory, as DataStorage:getFullDataDir() does.
+function Store.absolute(path,base)
+    if type(path)~="string" or path:sub(1,1)=="/" then return path end
+    if not base and type(lfs.currentdir)=="function" then base=lfs.currentdir() end
+    if type(base)~="string" or base:sub(1,1)~="/" then return path end
+    while path:sub(1,2)=="./" do path=path:sub(3):gsub("^/+","") end
+    if path=="." then path="" end
+    base=base:gsub("/+$","")
+    return path=="" and (base=="" and "/" or base) or base.."/"..path
+end
 function Store.exists(path) return lfs.attributes(path,"mode")=="file" end
 function Store.size(path) return lfs.attributes(path,"size") end
 function Store.read_file(path)

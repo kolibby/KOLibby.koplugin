@@ -320,6 +320,40 @@ test("TLS requires a matching DNS subject alternative name",function()
     assert(TLS.verify_name(cert,'sentry.libbyapp.com'));eq(TLS.verify_name(cert,'other.example.org'),false)
     eq(TLS.verify_name({extensions=function() return {} end},'sentry.libbyapp.com'),false)
 end)
+test("CA bundle prefers KOReader's absolute data path over firmware bundles",function()
+    local Diag=require("kolibby/netdiag")
+    local list=Diag.candidates({get_system_ca=function() return "/etc/ssl/cert.pem" end},{cwd="/mnt/us/koreader",koreader_dir="/mnt/us/koreader"})
+    eq(list[1],"/mnt/us/koreader/data/ca-bundle.crt");eq(list[3],"data/ca-bundle.crt");eq(list[4],"/etc/ssl/cert.pem")
+    eq(Diag.ca_bundle({},function(path) return path=="data/ca-bundle.crt" end),"data/ca-bundle.crt")
+    eq(Diag.ca_bundle({},function() return false end),nil)
+    -- LuaSec 1.3.2 has no get_system_ca; a raising one is ignored.
+    assert(#Diag.candidates({get_system_ca=function() error("boom") end},{cwd="/x"})>=3)
+end)
+test("Network failures name their cause without addresses, paths or tokens",function()
+    local Diag=require("kolibby/netdiag")
+    local cases={
+        {{"certificate verify failed"},"certificate",{reasons={"unable to get local issuer certificate"}}},
+        {{"certificate verify failed"},"clock",{reasons={"certificate is not yet valid"}}},
+        {{"certificate verify failed"},"clock",{reasons={},now=1600000000}},
+        {"TLS hostname validation failed","hostname",{}},
+        {{"host or service not provided, or not known"},"dns",{}},
+        {{"connection refused"},"refused",{}},
+        {{"wantread"},"timeout",{}},
+        {{"error loading CA locations ((null))"},"ca",{}},
+        {"kolibby/transport.lua:70: /mnt/us/koreader/KOLibby/x.part: No space left on device","storage",{}},
+        {"Could not create the download file: /mnt/us/koreader/cache/a:b.part: Invalid argument","storage",{}},
+        {{"closed"},"closed",{}},
+        {"something odd https://sentry.libbyapp.com/chip?token=secret","other",{}},
+    }
+    for _,c in ipairs(cases) do
+        local context=c[3];context.host="sentry.libbyapp.com"
+        local d=Diag.describe(c[1],context)
+        eq(d.kind,"network");eq(d.stage,c[2]);contains(d.message,"["..c[2].."]")
+        assert(not d.message:find("secret",1,true) and not d.message:find("/mnt/us",1,true) and not d.message:find("?token",1,true),d.message)
+    end
+    contains(Diag.describe({"certificate verify failed"},{host="h",reasons={"certificate has expired"}}).message,"date and time")
+    eq(Diag.describe(nil,{host="h",no_ca=true}).stage,"ca")
+end)
 test("Cookie jar respects host, domain and path boundaries",function()
     local h=Http.new{clock=function() return 100 end}
     h:store_cookies('https://a.read.libbyshelf.com/book/page',{['set-cookie']='host=one; Path=/book; Secure, shared=two; Domain=.read.libbyshelf.com; Path=/; Secure'})
@@ -510,7 +544,22 @@ test('MP3 progress labels use byte totals and identify download and remux stages
     eq(Present.progress({kind='mp3',stage='joining'}).stage,'Joining MP3')
     eq(Present.progress({kind='mp3',stage='complete'}).stage,'Ready to listen')
 end)
-require("tests/filesystem")(test,eq,fails)
+test('Progress writes once per step change and at most once per interval within a step',function()
+    local Progress=require('kolibby/progress')
+    local now,written=100,{}
+    local write=Progress.throttle(function(v) written[#written+1]=v.done end,{interval=2,clock=function() return now end})
+    write({stage='downloading',detail='Part 1 of 2',done=1})
+    for i=2,20 do now=now+.25;write({stage='downloading',detail='Part 1 of 2',done=i}) end
+    eq(table.concat(written,','),'1,9,17')
+    write({stage='downloading',detail='Part 2 of 2',done=21});write({stage='joining',done=0})
+    write({stage='complete',done=1});eq(table.concat(written,','),'1,9,17,21,0,1')
+    eq(Progress.write_interval(true),2);eq(Progress.poll_interval(true),1);eq(Progress.poll_interval(false),.5)
+    eq(Progress.eink({hasEinkScreen=function() return true end}),true);eq(Progress.eink({}),false)
+    eq(Progress.eink({hasEinkScreen=function() error('unsupported') end}),false)
+end)
+require("tests/filesystem")(test,eq,fails,contains)
+require("tests/fatstorage")(test,eq,fails,contains)
+require("tests/tlsmode")(test,eq,fails,contains)
 require("tests/partners")(test,eq,fails,contains)
 require("tests/publication")(test,eq,fails,contains)
 require("tests/audiobook")(test,eq,fails,contains)

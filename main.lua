@@ -21,23 +21,44 @@ local Covers=require("kolibby/covers")
 local Present=require("kolibby/presentation")
 local Borrowing=require("kolibby/borrowing")
 local Batch=require("kolibby/batch")
+local Background=require("kolibby/background")
+local Progress=require("kolibby/progress")
 
 local KOLibby=WidgetContainer:extend{is_doc_only=false}
 function KOLibby:init()
     self.version=U.trim(Store.read_file(self.path..'/VERSION'))
     self.store=Store.new(DataStorage:getSettingsDir().."/kolibby")
-    self.config=self.store:read("config.json",{interval_minutes=30,download_dir=DataStorage:getDataDir().."/KOLibby"})
+    -- getDataDir() is "." on Kindle and Kobo; folders shown to the user are absolute.
+    local data_dir=Store.absolute(DataStorage.getFullDataDir and DataStorage:getFullDataDir() or DataStorage:getDataDir())
+    self.config=self.store:read("config.json",{interval_minutes=30,download_dir=data_dir.."/KOLibby"})
     self.shelf=self.store:read("shelf.json",Model.empty())
     if Model.sanitize(self.shelf) then self.store:write("shelf.json",self.shelf) end
     Coordinator.last_sync=math.max(Coordinator.last_sync,self.shelf.last_sync or 0)
     self.downloads=self.store:read("downloads.json",{})
+    self:migratePaths()
     self.status=self.store:read("status.json",{})
-    self.cache_dir=DataStorage:getDataDir().."/cache/kolibby"
+    self.cache_dir=data_dir.."/cache/kolibby"
     self.cover_dir=self.cache_dir.."/covers"
+    self.eink=Progress.eink(Device)
     self.ui.menu:registerToMainMenu(self)
     self._tick=function() self:maybeSync();self:scheduleTick() end
     self._pair_poll=function() self:pollPairing() end
     UIManager:scheduleIn(4,self._tick)
+end
+-- Versions up to 0.6.2 saved the default download folder and finished downloads
+-- relative to KOReader's directory on Kindle and Kobo ("./KOLibby/...").
+function KOLibby:migratePaths()
+    local dir=self.config.download_dir
+    if type(dir)=="string" and Store.absolute(dir)~=dir then
+        self.config.download_dir=Store.absolute(dir);self.store:write("config.json",self.config)
+    end
+    local changed=false
+    for _,record in pairs(self.downloads) do
+        if type(record)=="table" and type(record.path)=="string" and Store.absolute(record.path)~=record.path then
+            record.path=Store.absolute(record.path);changed=true
+        end
+    end
+    if changed then self.store:write("downloads.json",self.downloads) end
 end
 function KOLibby:addToMainMenu(items)
     -- KOReader appends sorting_hint entries after the built-in tools. Its
@@ -208,7 +229,8 @@ function KOLibby:showSettings()
         {text="Reconnect / display setup code",callback=function() self:connectDevice() end},
         {text="Disconnect this plugin",callback=function()
             UIManager:show(ConfirmBox:new{text="Remove this plugin's saved Libby connection and shelf? Downloaded books will stay in the download folder.",ok_callback=function()
-                self:cancelPairing();self.store:forget();self.shelf=Model.empty();self.status={};self:showRoot()
+                -- A sync still running would save its identity and shelf again.
+                self:preemptBackground();self:cancelPairing();self.store:forget();self.shelf=Model.empty();self.status={};self:showRoot()
             end})
         end},
         {text="About KOLibby "..self.version,callback=function() self:message("KOLibby "..self.version.."\n\nA companion to the official Libby apps for native ebook and MP3 audiobook downloads.\n\nAGPL-3.0-only · KOLibby contributors\nhttps://github.com/kolibby/KOLibby.koplugin\n\nManage cards in any linked official Libby app. KOLibby synchronizes while KOReader is active and connected.") end},
@@ -217,28 +239,20 @@ function KOLibby:showSettings()
 end
 
 -- A worker owns its network session. Only raw JSON crosses the subprocess pipe.
+-- Silent work (automatic sync, the setup-code poll) runs without trapping input,
+-- so taps and page turns cannot cancel it. User actions run behind Trapper's
+-- visible, dismissable message and replace an automatic sync first.
 function KOLibby:runTask(label,work,done,silent,show_progress)
     if Coordinator.restart_required then if not silent then self:promptRestart() end;return end
+    if not silent then self:preemptBackground() end
     if self.busy or not Coordinator.acquire(self) then if not silent then self:message("A KOLibby operation is already running.") end;return end
     self.busy=true
-    return Trapper:wrap(function()
-        local widget,poll
-        if show_progress then
-            widget=require("kolibby/downloaddialog").new(show_progress,self.cover_dir);UIManager:show(widget)
-            local previous
-            poll=function()
-                if not self.busy then return end
-                local p=self.store:read("progress.json",{})
-                local current=table.concat({p.stage or "",p.done or 0,p.total or 0,p.bytes or 0,p.detail or '',p.batch_index or 0},":")
-                if current~=previous then widget:updateProgress(p);previous=current end
-                UIManager:scheduleIn(.5,poll)
-            end
-            UIManager:scheduleIn(1,poll)
-        end
-        local completed,raw=Trapper:dismissableRunInSubprocess(function()
-            local ok,value=pcall(work)
-            return J.encode(ok and {ok=true,value=value} or {ok=false,message=U.error_message(value)})
-        end,widget or (silent and true or label),true)
+    local widget,poll
+    local function task()
+        local ok,value=pcall(work)
+        return J.encode(ok and {ok=true,value=value} or {ok=false,message=U.error_message(value)})
+    end
+    local function finish(completed,raw)
         self.busy=false
         Coordinator.release(self)
         if poll then UIManager:unschedule(poll) end
@@ -254,7 +268,45 @@ function KOLibby:runTask(label,work,done,silent,show_progress)
             if not silent then self:message(message) end
             if done then done(nil,message) end
         elseif done then done(result.value) end
+    end
+    if silent then
+        local handle
+        handle=Background.run(task,function(completed,raw)
+            if Coordinator.background==handle then Coordinator.background=nil end
+            finish(completed,raw)
+        end,{UIManager=UIManager})
+        -- A failed fork counts as a failed attempt, so automatic sync backs off.
+        if not handle then return finish(true,nil) end
+        handle.owner=self;Coordinator.background=handle
+        return
+    end
+    return Trapper:wrap(function()
+        if show_progress then
+            widget=require("kolibby/downloaddialog").new(show_progress,self.cover_dir);UIManager:show(widget)
+            local previous
+            local interval=Progress.poll_interval(self.eink)
+            poll=function()
+                if not self.busy then return end
+                local p=self.store:read("progress.json",{})
+                local current=table.concat({p.stage or "",p.done or 0,p.total or 0,p.bytes or 0,p.detail or '',p.batch_index or 0},":")
+                if current~=previous then widget:updateProgress(p);previous=current end
+                UIManager:scheduleIn(interval,poll)
+            end
+            UIManager:scheduleIn(1,poll)
+        end
+        local completed,raw=Trapper:dismissableRunInSubprocess(task,widget or label,true)
+        finish(completed,raw)
     end)
+end
+-- Input never cancels background work. A user action replaces an automatic sync
+-- instead; the setup-code poll only ends with its screen (cancelPairing).
+function KOLibby:preemptBackground()
+    local task=Coordinator.background
+    if task and not Coordinator.pair_owner then task.cancel() end
+end
+-- Throttled progress writer for a download worker; create it inside the worker.
+function KOLibby:progressWriter()
+    return Progress.throttle(function(value) self.store:write("progress.json",value) end,{interval=Progress.write_interval(self.eink)})
 end
 function KOLibby:checkForUpdates()
     return NetworkMgr:runWhenOnline(function()
@@ -312,6 +364,7 @@ function KOLibby:saveShelf(shelf)
     if pending.key and shelf.loans[pending.key] then self.store:write("borrow.json",{}) end
 end
 function KOLibby:syncNow(automatic)
+    if not automatic then self:preemptBackground() end
     if Coordinator.owner or Coordinator.pair_owner then return end
     local start=function()
         self.status.last_attempt=os.time();self.store:write("status.json",self.status)
@@ -347,6 +400,7 @@ function KOLibby:maybeSync()
 end
 
 function KOLibby:connectDevice()
+    self:preemptBackground()
     if Coordinator.owner then self:message("Wait for the current operation to finish.");return end
     if Coordinator.pair_owner and Coordinator.pair_owner~=self then self:message("A Libby connection screen is already open.");return end
     self:cancelPairing();self:closeWindow();self.pairing={}
@@ -392,7 +446,11 @@ function KOLibby:pollPairing()
     end,self.pair_dialog~=nil)
 end
 function KOLibby:cancelPairing()
+    local task=Coordinator.background
+    local polling=task and task.owner==self and Coordinator.pair_owner==self
     self.pairing=nil;UIManager:unschedule(self._pair_poll)
+    -- The setup-code poll runs in the background; leaving the screen ends it.
+    if polling then task.cancel() end
     if Coordinator.pair_owner==self then Coordinator.pair_owner=nil end
     if self.pair_dialog then UIManager:close(self.pair_dialog);self.pair_dialog=nil end
 end
@@ -406,7 +464,7 @@ function KOLibby:downloadLoan(loan)
             local module=current.media_type=='audiobook' and 'kolibby/audiobook' or 'kolibby/download'
             local record=require(module).run(client,current,Model.card_for(shelf,current.card_id),{
                 directory=self.config.download_dir,cache_dir=self.cache_dir,cover_dir=self.cover_dir,
-                progress=function(value) self.store:write("progress.json",value) end})
+                progress=self:progressWriter()})
             return {record=record,shelf=shelf}
         end,function(result)
             if result then
@@ -431,7 +489,7 @@ function KOLibby:downloadAll(card_id)
             return Batch.run(client,shelf,self.store:read("downloads.json",{}),{
                 card_id=card_id,directory=self.config.download_dir,cache_dir=self.cache_dir,cover_dir=self.cover_dir,
                 persist=function(downloads) self.store:write("downloads.json",downloads) end,
-                progress=function(value) self.store:write("progress.json",value) end})
+                progress=self:progressWriter()})
         end,function(result)
             self:reloadShelf();Coordinator.last_sync=self.shelf.last_sync or 0
             if result then self:showShelf("loans",card_id);self:message(Batch.summary(result)) end

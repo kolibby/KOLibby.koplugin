@@ -17,7 +17,8 @@ end
 local function domain_matches(host,domain) return host==domain or host:sub(-#domain-1)=="."..domain end
 function Http.new(opts)
     opts=opts or {}
-    return setmetatable({cookies={},driver=opts.driver,clock=opts.clock or os.time,encodings=opts.encodings,observer=opts.observer},Http)
+    -- Libby traffic follows KOReader's own unverified TLS (see kolibby/transport).
+    return setmetatable({cookies={},driver=opts.driver,clock=opts.clock or os.time,encodings=opts.encodings,observer=opts.observer,verify=opts.verify==true},Http)
 end
 function Http:cookie_header(url)
     local q=parse(url);local out={}
@@ -78,7 +79,7 @@ function Http:request(options)
         local response
         if self.driver then response=self.driver(req)
         else
-            if not self.transport then self.transport=require('kolibby/transport').new{observer=self.observer} end
+            if not self.transport then self.transport=require('kolibby/transport').new{observer=self.observer,verify=self.verify} end
             response=self.transport:request(req)
         end
         response.headers=response.headers or {};response.body=response.body or ""

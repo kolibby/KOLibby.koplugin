@@ -38,12 +38,13 @@ function M.run(client,loan,card,opts)
     local MAX_RESOURCES=10000
     if type(entries)~="table" or #entries==0 or #entries>MAX_RESOURCES then error("Libby returned an unsupported native resource roster",0) end
     if passport.expires and tonumber(passport.expires) and tonumber(passport.expires)<=os.time() then error("The publication grant expired. Try the download again.",0) end
-    local identity={key=loan.key,checkout_id=loan.checkout_id,roster=roster_id,version=version,pipeline="epub-0.6"}
+    -- epub-0.7 names cached resources by hash; older caches are discarded.
+    local identity={key=loan.key,checkout_id=loan.checkout_id,roster=roster_id,version=version,pipeline="epub-0.7"}
     local resume=job:read("resources.json",{files={}})
     if not resume.identity or resume.identity.key~=identity.key or resume.identity.checkout_id~=identity.checkout_id or resume.identity.roster~=roster_id or resume.identity.version~=version or resume.identity.pipeline~=identity.pipeline then
         Store.remove_tree(work.."/assets");resume={identity=identity,files={}}
     end
-    local assets,by_url,by_path={},{},{}
+    local assets,by_url,by_path,by_file={},{},{},{}
     local total_bytes=0
     local function add(entry,depth)
         if type(entry)~="table" or type(entry.url)~="string" or not allowed(entry.url) then error("Unsupported native publication resource host",0) end
@@ -51,8 +52,12 @@ function M.run(client,loan,card,opts)
         if by_path[path] and by_path[path]~=canonical then error("Native publication contains conflicting resource paths",0) end
         if by_url[canonical] then return by_url[canonical] end
         if #assets>=MAX_RESOURCES or (depth or 0)>32 then error("This publication exceeds the supported dependency limit",0) end
-        local asset={url=entry.url,path=path,original_path=path,entry=entry,depth=depth or 0,file=work.."/assets/"..path,media_type=type_for(path)}
-        assets[#assets+1]=asset;by_url[canonical]=asset;by_path[path]=asset
+        -- FAT storage (Kindle, Kobo) rejects : * ? " < > | and folds case, so the
+        -- cache never uses publication paths as file names. path stays the EPUB entry name.
+        local name=U.hash(path)
+        if by_file[name] then error("Native publication contains conflicting resource paths",0) end
+        local asset={url=entry.url,path=path,original_path=path,entry=entry,depth=depth or 0,file=work.."/assets/"..name,media_type=type_for(path)}
+        assets[#assets+1]=asset;by_url[canonical]=asset;by_path[path]=asset;by_file[name]=asset
         return asset
     end
     for _,entry in ipairs(entries) do add(entry) end

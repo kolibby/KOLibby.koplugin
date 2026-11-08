@@ -4,9 +4,15 @@
 -- nor advertises HTTP/2 without implementing it. Connections are reused per job.
 local TLS=require('kolibby/tls')
 local Compression=require('kolibby/compression')
+local Diag=require('kolibby/netdiag')
 local Transport={};Transport.__index=Transport
+-- verify=false matches KOReader's own LuaSec requests: KOReader 2026.07.x sets
+-- no CA file and LuaSec defaults to verify='none'. Libby traffic uses it so a
+-- wrong device clock or an outdated certificate store cannot block KOLibby.
+-- The updater keeps the default, verified mode: a forged release runs as code.
 function Transport.new(options)
-    return setmetatable({connections={},observer=options and options.observer,ca_file=options and options.ca_file},Transport)
+    options=options or {}
+    return setmetatable({connections={},observer=options.observer,ca_file=options.ca_file,verify=options.verify~=false},Transport)
 end
 local function lower(headers)
     local h={};for k,v in pairs(headers) do h[k:lower()]=v end;return h
@@ -42,21 +48,25 @@ function Transport:request(req)
         self.connections[origin]=nil
         local file,chunks,decoded_bytes,encoded_bytes=nil,{},0,0
         local reported=0
+        local verify=self.verify
+        local ca=verify and (self.ca_file or Diag.ca_bundle(ssl)) or nil
         local ok,result=pcall(function()
             if not connection then
-                local ca=self.ca_file or (type(ssl.get_system_ca)=='function' and ssl.get_system_ca() or 'data/ca-bundle.crt')
-                local create=https.tcp{verify='peer',cafile=ca,options={'all','no_sslv2','no_sslv3','no_tlsv1','no_tlsv1_1'}}
-                local function verified_create()
+                if verify and not ca then error('error loading CA locations (KOReader certificate bundle not found)',0) end
+                local create=https.tcp(verify and {verify='peer',cafile=ca,options=Diag.OPTIONS} or {verify='none',options=Diag.OPTIONS})
+                local function checked_create()
                     local conn=create();local connect=conn.connect
                     conn.connect=function(self,host,connect_port)
-                        local status,err=connect(self,host,connect_port)
+                        local done,status,err=pcall(connect,self,host,connect_port)
+                        -- LuaSec raises after the TCP connect succeeded; do not leak that socket.
+                        if not done then if self.sock then pcall(self.sock.close,self.sock) end;error(status,0) end
                         if not status then return nil,err end
-                        if not TLS.verify_name(self:getpeercertificate(),host) then self:close();error('TLS hostname validation failed',0) end
+                        if verify and not TLS.verify_name(self:getpeercertificate(),host) then self:close();error('TLS hostname validation failed',0) end
                         return status
                     end
                     return conn
                 end
-                connection=http.open(parsed.host,port,verified_create)
+                connection=http.open(parsed.host,port,checked_create)
             end
             -- Bypass LuaSocket's high-level TE/Connection injection.
             connection:sendrequestline(method,uri)
@@ -71,7 +81,12 @@ function Transport:request(req)
             if not status then error('Invalid HTTP status',0) end
             local limit=req.max_bytes or 16*1024*1024
             local has_body=method~='HEAD' and status~=204 and status~=304
-            if req.destination then file=assert(io.open(req.destination,'wb')) end
+            if req.destination then
+                local handle,open_err=io.open(req.destination,'wb')
+                -- FAT storage (Kindle, Kobo) rejects some names with "Invalid argument".
+                if not handle then error('Could not create the download file: '..tostring(open_err),0) end
+                file=handle
+            end
             local function emit(chunk)
                 decoded_bytes=decoded_bytes+#chunk
                 if decoded_bytes>limit then error('Decoded response exceeds size limit',0) end
@@ -107,7 +122,11 @@ function Transport:request(req)
         if connection then pcall(connection.close,connection) end
         if req.destination then os.remove(req.destination) end
         if not reused or attempt==2 or method~='GET' and method~='HEAD' then
-            error({kind='network',message='Network request failed. Check your connection, device clock and available storage, then try again.'},0)
+            local context={host=parsed.host,method=method,verify=verify,ca=ca,no_ca=verify and not ca}
+            if verify and Diag.classify(result)=='certificate' then context.reasons=Diag.certificate_reasons(parsed.host,port,ca) end
+            local description=Diag.describe(result,context)
+            Diag.log(description,context)
+            error(description,0)
         end
     end
 end
