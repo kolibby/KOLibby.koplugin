@@ -42,7 +42,7 @@ function M.hash_file(path)
     file:close();return update()
 end
 local function filesystem()
-    local lfs=require('lfs');local Store=require('kolibby/store')
+    local Store=require('kolibby/store');local lfs=Store.lfs
     local fs={mode=function(path) return lfs.symlinkattributes(path,'mode') end,rename=os.rename,mkdir=Store.mkdir}
     function fs.remove(path)
         local mode=fs.mode(path)

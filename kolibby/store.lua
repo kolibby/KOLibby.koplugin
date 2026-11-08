@@ -1,9 +1,10 @@
 -- Copyright (C) 2026 KOLibby contributors
 -- SPDX-License-Identifier: AGPL-3.0-only
-local lfs=require("lfs")
+local lfs_ok,lfs=pcall(require,"libs/libkoreader-lfs")
+if not lfs_ok then lfs=require("lfs") end
 local J=require("kolibby/json")
 local U=require("kolibby/util")
-local Store={};Store.__index=Store
+local Store={lfs=lfs};Store.__index=Store
 local ffi_ok,ffi=pcall(require,"ffi")
 if ffi_ok then pcall(ffi.cdef,"int chmod(const char *path, unsigned int mode);") end
 local function protect(path,mode) if ffi_ok then pcall(function() ffi.C.chmod(path,mode) end) end end

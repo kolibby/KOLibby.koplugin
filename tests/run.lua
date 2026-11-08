@@ -510,6 +510,7 @@ test('MP3 progress labels use byte totals and identify download and remux stages
     eq(Present.progress({kind='mp3',stage='joining'}).stage,'Joining MP3')
     eq(Present.progress({kind='mp3',stage='complete'}).stage,'Ready to listen')
 end)
+require("tests/filesystem")(test,eq,fails)
 require("tests/partners")(test,eq,fails,contains)
 require("tests/publication")(test,eq,fails,contains)
 require("tests/audiobook")(test,eq,fails,contains)
