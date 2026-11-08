@@ -43,6 +43,16 @@ Cover art is cached during synchronization and remains available offline; missin
 
 Downloads show the book cover, a progress bar, file counts and saved size. They support cancellation and retry. Previously completed portions are reused when still valid for the current checkout. An existing complete EPUB or MP3 is preserved until a replacement finishes. Audiobook progress reports the current part and byte totals, followed by checking and joining stages.
 
+## Bookshelf integration
+
+KOLibby can supply a shelf source to the optional [Bookshelf plugin](https://github.com/AndyHazz/bookshelf.koplugin). Connect and synchronize KOLibby first, then add or edit a Bookshelf chip and choose **Source / grouping → KOLibby**. Select **Loans** or **Holds**, then **All library cards** or one card. Add multiple chips to keep separate loan, hold or library views.
+
+The chips show cached covers and metadata, including loans that have not been downloaded. Open an existing EPUB through the chip, or select a remote loan for KOLibby's download controls. Hold details offer the existing **Borrow** confirmation when eligible. Audiobooks retain KOLibby's download and MP3-location controls; Bookshelf does not become an audio player. Pull down to synchronize; completed downloads, borrowing and synchronization refresh the source. Shelf browsing uses the local cache and works offline.
+
+Optional Bookshelf template tokens `%kolibby_status`, `%kolibby_library` and `%kolibby_download` expose the due/hold status, library/card label and download state. Add them to Bookshelf's top-panel, cover-caption or list templates as desired.
+
+This uses Bookshelf's documented source interface (version 1), with Bookshelf 6.3.3 used for integration checks. KOLibby remains available under Tools when Bookshelf is absent or its source interface is too old. Existing Bookshelf settings are not changed automatically; readers choose which chips to add.
+
 ## Update KOLibby
 
 Open **KOLibby → Settings → Check for updates**. KOLibby checks the [latest stable GitHub release](https://github.com/kolibby/KOLibby.koplugin/releases/latest), displays its release notes, and offers **Install update**. Installation downloads the runtime ZIP, verifies GitHub's SHA-256 digest and its file manifest, then asks you to restart KOReader. **Later** on the release-notes screen leaves the update uninstalled. On Android, close and reopen KOReader after installation; supported platforms offer KOReader’s native restart prompt. Your Libby connection, settings and downloaded books are kept.

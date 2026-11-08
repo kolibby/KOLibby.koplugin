@@ -120,6 +120,18 @@ test('Relative download folders and records saved by earlier versions become abs
     eq(table.concat(writes,','),'config.json,downloads.json')
     writes={};Plugin.migratePaths(state);eq(#writes,0)
 end)
+test('Bookshelf open callbacks retain KOLibby expiry and audiobook checks',function()
+    local env=environment{bundled=true};local plugin=env.start()
+    local opened,messages={},{}
+    plugin.message=function(_,text) messages[#messages+1]=text end
+    local loan={key='A:42',checkout_id='fixture',expires=os.time()+3600}
+    local record={key=loan.key,checkout_id=loan.checkout_id,path='/fixture/download',expires=loan.expires}
+    plugin.downloads[loan.key]=record
+    local function open(path) opened[#opened+1]=path end
+    plugin:openLoan(loan,open);eq(opened[1],record.path)
+    record.expires=os.time()-1;plugin:openLoan(loan,open);eq(#opened,1);contains(messages[1],'loan period has ended')
+    record.expires=loan.expires;record.kind='mp3';plugin:openLoan(loan,open);eq(#opened,1);contains(messages[2],'audio player')
+end)
 test('Input cannot cancel background sync; user actions and leaving the setup-code screen can',function()
     local Coordinator=require('kolibby/coordinator')
     local queue={}

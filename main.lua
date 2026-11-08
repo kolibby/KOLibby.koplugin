@@ -23,6 +23,7 @@ local Borrowing=require("kolibby/borrowing")
 local Batch=require("kolibby/batch")
 local Background=require("kolibby/background")
 local Progress=require("kolibby/progress")
+local Bookshelf=require("kolibby/bookshelf")
 
 local KOLibby=WidgetContainer:extend{is_doc_only=false}
 function KOLibby:init()
@@ -43,7 +44,17 @@ function KOLibby:init()
     self.ui.menu:registerToMainMenu(self)
     self._tick=function() self:maybeSync();self:scheduleTick() end
     self._pair_poll=function() self:pollPairing() end
+    self.bookshelf=Bookshelf.new(self,{manager=UIManager,dialog=ButtonDialog,menu=Menu,exists=Store.exists})
+    self._bookshelf_register=function()
+        if not self.closed then self.bookshelf:register() end
+    end
+    -- Other plugins may initialize after KOLibby. Registration is optional and
+    -- uses only Bookshelf's documented source interface.
+    UIManager:scheduleIn(0,self._bookshelf_register)
     UIManager:scheduleIn(4,self._tick)
+end
+function KOLibby:notifyBookshelf()
+    if self.bookshelf then self.bookshelf:changed() end
 end
 -- Versions up to 0.6.2 saved the default download folder and finished downloads
 -- relative to KOReader's directory on Kindle and Kobo ("./KOLibby/...").
@@ -177,7 +188,8 @@ function KOLibby:showCards()
     rows[#rows+1]={text="Back to KOLibby",callback=function() self:showRoot() end}
     self:showMenu("Libby library cards",rows,{items_max_lines=3})
 end
-function KOLibby:showItem(item)
+function KOLibby:showItem(item,options)
+    options=options or {}
     local summary=Present.summary(item,self.shelf,self.downloads[item.key])
     local text=(item.subtitle and item.subtitle.."\n\n" or "")..summary.metadata.."\n"..summary.library..(summary.attribution and "\n"..summary.attribution or "").."\n\n"..
         summary.status..(summary.detail and "\n"..summary.detail or "")
@@ -186,15 +198,18 @@ function KOLibby:showItem(item)
     if item.kind=="loans" then
         local saved=self.downloads[item.key]
         if Model.same_checkout(saved,item) and Store.exists(saved.path) then
-            buttons[#buttons+1]={{text=saved.kind=='mp3' and "Show MP3 location" or "Open in KOReader",callback=function() UIManager:close(dialog);self:openLoan(item) end}}
+            buttons[#buttons+1]={{text=saved.kind=='mp3' and "Show MP3 location" or "Open in KOReader",callback=function() UIManager:close(dialog);self:openLoan(item,options.open) end}}
         end
         if item.downloadable and item.expires and item.expires>os.time() then
-            buttons[#buttons+1]={{text=saved and "Download again / resume" or item.download_kind=='mp3' and "Download MP3" or "Download EPUB",callback=function() UIManager:close(dialog);self:downloadLoan(item) end}}
+            buttons[#buttons+1]={{text=saved and "Download again / resume" or item.download_kind=='mp3' and "Download MP3" or "Download EPUB",callback=function() UIManager:close(dialog);self:downloadLoan(item,options.open) end}}
         elseif not item.downloadable then text=text.."\n\nNative download is not available for this media type." end
     elseif Model.can_borrow(item) then
-        buttons[#buttons+1]={{text="Borrow",callback=function() UIManager:close(dialog);self:borrowHold(item) end}}
+        buttons[#buttons+1]={{text="Borrow",callback=function() UIManager:close(dialog);self:borrowHold(item,options.borrowed) end}}
     end
-    buttons[#buttons+1]={{text="Back",callback=function() UIManager:close(dialog);if not self.window then self:showShelf(item.kind,self.card_filter) end end}}
+    buttons[#buttons+1]={{text="Back",callback=function()
+        UIManager:close(dialog)
+        if options.back then options.back() elseif not self.window then self:showShelf(item.kind,self.card_filter) end
+    end}}
     dialog=ButtonDialog:new{buttons=buttons}
     local Book=require("kolibby/bookwidgets")
     local width=dialog:getAddedWidgetAvailableWidth()
@@ -230,7 +245,7 @@ function KOLibby:showSettings()
         {text="Disconnect this plugin",callback=function()
             UIManager:show(ConfirmBox:new{text="Remove this plugin's saved Libby connection and shelf? Downloaded books will stay in the download folder.",ok_callback=function()
                 -- A sync still running would save its identity and shelf again.
-                self:preemptBackground();self:cancelPairing();self.store:forget();self.shelf=Model.empty();self.status={};self:showRoot()
+                self:preemptBackground();self:cancelPairing();self.store:forget();self.shelf=Model.empty();self.status={};self:notifyBookshelf();self:showRoot()
             end})
         end},
         {text="About KOLibby "..self.version,callback=function() self:message("KOLibby "..self.version.."\n\nA companion to the official Libby apps for native ebook and MP3 audiobook downloads.\n\nAGPL-3.0-only · KOLibby contributors\nhttps://github.com/kolibby/KOLibby.koplugin\n\nManage cards in any linked official Libby app. KOLibby synchronizes while KOReader is active and connected.") end},
@@ -362,10 +377,11 @@ function KOLibby:saveShelf(shelf)
     Coordinator.last_sync=shelf.last_sync
     local pending=self.store:read("borrow.json",{})
     if pending.key and shelf.loans[pending.key] then self.store:write("borrow.json",{}) end
+    self:notifyBookshelf()
 end
-function KOLibby:syncNow(automatic)
+function KOLibby:syncNow(automatic,done)
     if not automatic then self:preemptBackground() end
-    if Coordinator.owner or Coordinator.pair_owner then return end
+    if Coordinator.owner or Coordinator.pair_owner then if done then done(nil,'busy') end;return end
     local start=function()
         self.status.last_attempt=os.time();self.store:write("status.json",self.status)
         return self:runTask("Synchronizing Libby…",function()
@@ -377,6 +393,7 @@ function KOLibby:syncNow(automatic)
             self.store:write("status.json",self.status)
             if shelf and self.window then self:refreshView() end
             if self.main_menu and self.ui.menu.menu_container and self.ui.menu.menu_container[1]==self.main_menu then self.main_menu:updateItems() end
+            if done then done(shelf,err) end
         end,automatic)
     end
     if automatic then return start() end
@@ -454,7 +471,7 @@ function KOLibby:cancelPairing()
     if Coordinator.pair_owner==self then Coordinator.pair_owner=nil end
     if self.pair_dialog then UIManager:close(self.pair_dialog);self.pair_dialog=nil end
 end
-function KOLibby:downloadLoan(loan)
+function KOLibby:downloadLoan(loan,open)
     return NetworkMgr:runWhenOnline(function()
         self.store:write("progress.json",{stage="authorizing",kind=loan.media_type=="audiobook" and "mp3" or "epub",done=0,total=0})
         return self:runTask(loan.media_type=='audiobook' and "Downloading MP3…" or "Downloading EPUB…",function()
@@ -473,7 +490,7 @@ function KOLibby:downloadLoan(loan)
                 local work=result.record.work;result.record.work=nil
                 self.downloads[loan.key]=result.record;self.store:write("downloads.json",self.downloads)
                 if work then Store.remove_tree(work) end
-                self:openLoan(self.shelf.loans[loan.key])
+                self:notifyBookshelf();self:openLoan(self.shelf.loans[loan.key],open)
             end
         end,false,loan)
     end)
@@ -492,23 +509,29 @@ function KOLibby:downloadAll(card_id)
                 progress=self:progressWriter()})
         end,function(result)
             self:reloadShelf();Coordinator.last_sync=self.shelf.last_sync or 0
+            self:notifyBookshelf()
             if result then self:showShelf("loans",card_id);self:message(Batch.summary(result)) end
         end,false,{batch=true,title=card_id and 'Loans on this card' or 'All library loans',author='EPUBs and MP3 audiobooks'})
     end)
 end
-function KOLibby:borrowHold(item)
+function KOLibby:borrowHold(item,done)
     return NetworkMgr:runWhenOnline(function()
         return self:runTask("Checking this hold…",function()
             return Borrowing.prepare(self:client(),self.shelf,item,function(shelf) self.store:write("shelf.json",shelf) end)
         end,function(result)
             self:reloadShelf()
+            self:notifyBookshelf()
             if not result then return end
-            if result.existing then self.store:write("borrow.json",{});self:showShelf("loans");self:message("This title is already on your loans.");return end
-            self:showBorrowConfirmation(result)
+            if result.existing then
+                self.store:write("borrow.json",{})
+                if done then done(result) else self:showShelf("loans") end
+                self:message("This title is already on your loans.");return
+            end
+            self:showBorrowConfirmation(result,done)
         end)
     end)
 end
-function KOLibby:showBorrowConfirmation(prepared)
+function KOLibby:showBorrowConfirmation(prepared,done)
     local item=prepared.hold
     local pending=self.store:read("borrow.json",{})
     local text="Borrow “"..item.title.."”?\n\n"..Model.card_label(self.shelf,item.card_id).."\nChoose a loan period."
@@ -518,13 +541,13 @@ function KOLibby:showBorrowConfirmation(prepared)
     for _,period in ipairs(prepared.options) do
         local key=tostring(period[1])..":"..period[2]
         buttons[#buttons+1]={{text="Borrow for "..Borrowing.period_label(period)..(key==prepared.preferred and " (default)" or ""),callback=function()
-            UIManager:close(dialog);self:commitBorrow(item,period)
+            UIManager:close(dialog);self:commitBorrow(item,period,done)
         end}}
     end
     buttons[#buttons+1]={{text="Cancel",callback=function() UIManager:close(dialog) end}}
     dialog=ButtonDialog:new{title=text,buttons=buttons};UIManager:show(dialog)
 end
-function KOLibby:commitBorrow(item,period)
+function KOLibby:commitBorrow(item,period,done)
     return NetworkMgr:runWhenOnline(function()
         return self:runTask("Borrowing your book…",function()
             local client=self:client()
@@ -535,9 +558,10 @@ function KOLibby:commitBorrow(item,period)
             return result
         end,function(result,err)
             self:reloadShelf()
+            self:notifyBookshelf()
             if result then
                 self:saveShelf(result.shelf)
-                self:showShelf(result.loan_key and "loans" or "holds")
+                if done then done(result) else self:showShelf(result.loan_key and "loans" or "holds") end
                 self:message(result.message)
             elseif err=="cancelled" and self.store:read("borrow.json",{}).key then
                 self:message("Borrowing was interrupted. Synchronize to check whether the loan was created before trying again.")
@@ -545,7 +569,7 @@ function KOLibby:commitBorrow(item,period)
         end)
     end)
 end
-function KOLibby:openLoan(loan)
+function KOLibby:openLoan(loan,opener)
     local record=self.downloads[loan.key]
     if not Model.same_checkout(record,loan) or not Store.exists(record.path) then self:message("Download this checkout before opening it.");return end
     local expiry=math.min(loan.expires or 0,record.expires or 0)
@@ -555,7 +579,9 @@ function KOLibby:openLoan(loan)
         return
     end
     self:closeWindow()
-    local function open() require("apps/reader/readerui"):showReader(record.path) end
+    local function open()
+        if opener then opener(record.path) else require("apps/reader/readerui"):showReader(record.path) end
+    end
     if record.fixed_layout then
         UIManager:show(require("ui/widget/confirmbox"):new{
             text="This EPUB contains fixed-layout pages. KOReader may reflow or misrender them. For the intended layout, use a reader with fixed-layout EPUB support.\n\nSaved at:\n"..record.path,
@@ -572,7 +598,11 @@ end
 function KOLibby:onNetworkConnected()
     if not self.pairing then UIManager:scheduleIn(2,function() self:maybeSync() end) end
 end
-function KOLibby:onCloseDocument() self.closed=true;self:cancelPairing();UIManager:unschedule(self._tick) end
-function KOLibby:onCloseWidget() self.closed=true;self:cancelPairing();UIManager:unschedule(self._tick) end
+function KOLibby:onCloseDocument() self:onCloseWidget() end
+function KOLibby:onCloseWidget()
+    self.closed=true;self:cancelPairing();UIManager:unschedule(self._tick)
+    UIManager:unschedule(self._bookshelf_register)
+    if self.bookshelf then self.bookshelf:close() end
+end
 function KOLibby:onExit() self:onCloseWidget() end
 return KOLibby
