@@ -171,6 +171,6 @@ function M.run(client,loan,card,opts)
     if not Store.size(temporary) or Store.size(temporary)<200 then os.remove(temporary);error("The generated EPUB is incomplete",0) end
     if not os.rename(temporary,destination) then os.remove(temporary);error("Could not finish saving the EPUB",0) end
     progress(downloaded_resources,downloaded_resources,"complete")
-    return {key=loan.key,checkout_id=loan.checkout_id,path=destination,expires=math.min(loan.expires,tonumber(passport.expires) or loan.expires),resources=downloaded_resources,spine=#book.spine,downloaded_at=os.time(),fixed_layout=layout.fixed>0,mixed_layout=layout.mixed}
+    return {key=loan.key,checkout_id=loan.checkout_id,path=destination,expires=math.min(loan.expires,tonumber(passport.expires) or loan.expires),resources=downloaded_resources,spine=#book.spine,downloaded_at=os.time(),fixed_layout=layout.fixed>0,mixed_layout=layout.mixed,description=Epub.description(book)}
 end
 return M

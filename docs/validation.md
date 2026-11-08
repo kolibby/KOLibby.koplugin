@@ -1,6 +1,6 @@
 # Validation
 
-The portable Lua suite has 205 passing tests. It covers shelf reconciliation,
+The portable Lua suite has 214 passing tests. It covers shelf reconciliation,
 multiple and partner cards, download queuing, publication assembly, audiobook
 output, networking, privacy and update handling. Tests use synthetic data.
 
@@ -9,6 +9,12 @@ menu placement, progress, cancellation and update installation. The Loans action
 and card-filtered action have also been exercised with isolated UI fixtures.
 Generated sample EPUBs pass EPUBCheck; selected audio outputs have independent
 frame, metadata, chapter and playback checks.
+
+EPUB metadata tests cover full and short descriptions, publisher HTML, entities,
+Unicode, paragraph breaks and malformed optional text. A complete download fixture
+checks the packaged description and cached synopsis without extra requests. A
+synthetic description EPUB passes EPUBCheck, and Calibre reads back its expected
+Unicode text and paragraphs.
 
 These checks cover selected publications and Android installations. They do not
 establish compatibility with every library, publication, player or KOReader device.
@@ -45,4 +51,4 @@ cover rendering, template tokens and the collection/card picker. Synthetic
 circulation and download fixtures exercise hold confirmation, shelf refresh,
 download completion, Bookshelf's reader opener and return from the reader. These
 checks do not borrow a real hold or establish hardware compatibility on every
-device. Clear7 validation of the Bookshelf integration remains a device test.
+device. The Bookshelf integration has also been confirmed on a Clear7.

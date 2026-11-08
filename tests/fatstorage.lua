@@ -118,7 +118,7 @@ test('EPUB resources whose names FAT rejects or folds together are cached under 
     function client:publication()
         return {expires=os.time()+3600},{{group='title-content',id='fat',version=1,entries={
             {url=host..'/Text/Chapter.xhtml'},{url=host..'/Text/chapter.xhtml'},{url=host..'/Images/fig%3A1.png'}}}},
-            {title={main='FAT storage'},language='en',creator={{name='Synthetic Author'}},spine={{path='Text/Chapter.xhtml'},{path='Text/chapter.xhtml'}}}
+            {title={main='FAT storage'},language='en',creator={{name='Synthetic Author'}},description={full='<p>Publisher &amp; synopsis.</p>'},spine={{path='Text/Chapter.xhtml'},{path='Text/chapter.xhtml'}}}
     end
     function client.transport(req)
         local path=require('kolibby/util').urldecode(assert(req.url:match('^https://fixture.libbyshelf.com([^?#]*)')))
@@ -128,6 +128,8 @@ test('EPUB resources whose names FAT rejects or folds together are cached under 
     local loan={key='synthetic:fat',id='fat',checkout_id='synthetic',title='FAT storage',downloadable=true,expires=os.time()+3600}
     local record=Download.run(client,loan,{},{directory='/mnt/us/KOLibby',cache_dir='/mnt/us/koreader/cache/kolibby'})
     eq(record.resources,3);eq(record.spine,2)
+    eq(record.description,'Publisher & synopsis.')
+    contains(env.entries['OEBPS/content.opf'],'<dc:description>Publisher &amp; synopsis.</dc:description>')
     contains(env.entries['OEBPS/Text/Chapter.xhtml'],'Upper chapter')
     contains(env.entries['OEBPS/Text/chapter.xhtml'],'Lower chapter')
     eq(env.entries['OEBPS/Images/fig:1.png'],png)

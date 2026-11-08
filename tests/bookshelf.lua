@@ -107,6 +107,16 @@ test('Cached cover paths are handed to Bookshelf without fetching images',functi
         eq(row(f.host.spec.list{},'A:42').cover_image_path,path);eq(#f.p.calls,0)
     end)
 end)
+test('A downloaded publisher synopsis is also shown in the Bookshelf record',function()
+    with_fixture(function(f)
+        f.h:register();local loan=f.p.shelf.loans['A:42']
+        f.p.downloads[loan.key]={key=loan.key,checkout_id=loan.checkout_id,path='/fixture/book.epub',description='The publisher synopsis.'}
+        eq(row(f.host.spec.list{},loan.key).description,'The publisher synopsis.')
+        f.p.downloads[loan.key].checkout_id='old-checkout'
+        assert(row(f.host.spec.list{},loan.key).description~='The publisher synopsis.')
+        assert(row(f.host.spec.list{collection='holds'},loan.key).description~='The publisher synopsis.')
+    end)
+end)
 test('Opening a downloaded EPUB preserves the Bookshelf opener callback',function()
     with_fixture(function(f)
         f.h:register();local loan=f.p.shelf.loans['A:42']

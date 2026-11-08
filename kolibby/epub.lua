@@ -33,6 +33,55 @@ function M.navigation(book)
     return '<?xml version="1.0" encoding="utf-8"?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head><title>Contents</title></head><body><nav epub:type="toc" id="toc"><h1>Contents</h1>'..toc(entries)..'</nav></body></html>'
 end
 function M.identifier(loan) return "urn:kolibby:"..U.urlencode(loan.id) end
+local function description_text(value)
+    if type(value)~='string' or #value>128*1024 then return nil end
+    local Markup=require('kolibby/markup')
+    local html=value:find('</?[%a_:]')~=nil
+    local hidden,out={},{}
+    local omit={script=true,style=true,head=true,template=true,iframe=true,object=true}
+    local blocks={p=true,div=true,section=true,article=true,blockquote=true,ul=true,ol=true,
+        h1=true,h2=true,h3=true,h4=true,h5=true,h6=true,table=true}
+    local function append(text,decode)
+        if decode then text=Markup.decode(text) end
+        text=text:gsub('\194\160',' '):gsub('\r\n','\n'):gsub('\r','\n')
+        if html then text=text:gsub('%s+',' ') end
+        out[#out+1]=text
+    end
+    for token in Markup.tokens(value) do
+        if token.kind=='start' and omit[token.name] and not token.empty then
+            hidden[#hidden+1]=token.name
+        elseif token.kind=='end' and hidden[#hidden]==token.name then
+            table.remove(hidden)
+        elseif #hidden==0 then
+            if token.kind=='text' then append(token.raw,true)
+            elseif token.kind=='cdata' then append(token.raw:sub(10,-4),false)
+            elseif token.kind=='start' or token.kind=='end' then
+                if blocks[token.name] then out[#out+1]='\n\n'
+                elseif token.name=='br' or token.name=='li' or token.name=='tr' then out[#out+1]='\n'
+                elseif token.name=='td' or token.name=='th' then out[#out+1]=' ' end
+            end
+        end
+    end
+    local text=table.concat(out);local valid={}
+    -- Optional publisher text must not introduce illegal XML characters.
+    for code,a,z in Markup.codes(text) do
+        if (code==9 or code==10 or code==13 or code>=32) and code%65536<65534 then
+            valid[#valid+1]=text:sub(a,z)
+        end
+    end
+    text=table.concat(valid):gsub('[ \t]+',' '):gsub(' *\n *','\n'):gsub('\n\n\n+','\n\n')
+    text=U.trim(text)
+    return text~='' and text or nil
+end
+function M.description(book)
+    local value=book and book.description
+    local function clean(raw)
+        local ok,text=pcall(description_text,raw)
+        return ok and text or nil
+    end
+    if type(value)=='table' then return clean(value.full) or clean(value.short) end
+    return clean(value)
+end
 function M.package(book,loan,assets,now)
     local title=type(book.title)=="table" and book.title.main or loan.title
     local language=type(book.language)=="string" and book.language or "und"
@@ -42,6 +91,8 @@ function M.package(book,loan,assets,now)
     for _,creator in ipairs(type(book.creator)=="table" and book.creator or {}) do
         if type(creator)=="table" and type(creator.name)=="string" then out[#out+1]='<dc:creator>'..U.xml(creator.name)..'</dc:creator>' end
     end
+    local description=M.description(book)
+    if description then out[#out+1]='<dc:description>'..U.xml(description)..'</dc:description>' end
     local layout=book._kolibby_layout or {layout='reflowable'}
     out[#out+1]='<meta property="rendition:layout">'..layout.layout..'</meta>'
     for _,name in ipairs({'orientation','spread'}) do if layout[name] then out[#out+1]='<meta property="rendition:'..name..'">'..layout[name]..'</meta>' end end

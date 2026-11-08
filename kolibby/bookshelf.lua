@@ -54,7 +54,7 @@ function M:records(source)
             series_name=item.series,series_num=item.series_order,
             cover_image_path=cover and self:exists(cover) and cover or nil,
             format=item.download_kind=='mp3' and 'MP3' or item.download_kind=='epub' and 'EPUB' or item.media_label,
-            description=table.concat(description,'\n'),added_time=item.placed,
+            description=kind=='loans' and Model.same_checkout(saved,item) and type(saved.description)=='string' and saved.description~='' and saved.description or table.concat(description,'\n'),added_time=item.placed,
             status=kind=='holds' and 'on_hold' or 'unread',read_status=kind=='holds' and 'on_hold' or 'unread',
             kolibby_key=item.key,kolibby_collection=kind,kolibby_checkout=item.checkout_id,
             kolibby_status=summary.status,kolibby_library=summary.library,
