@@ -6,6 +6,11 @@ local function load()
     if loaded then return end
     loaded=true
     local ok;ok,ffi=pcall(require,'ffi');if not ok then ffi=nil;return end
+    -- All KOReader plugins share one LuaJIT C namespace, and the first declaration
+    -- of a C function wins; later ones are silently ignored. Another plugin may
+    -- declare inflate() with zlib.h's struct z_stream_s, so the stream is passed
+    -- as void *, which converts to whatever pointer type was declared first. The
+    -- void * declarations here likewise accept any other plugin's stream type.
     ffi.cdef[[
       typedef struct {
         const unsigned char *next_in; unsigned int avail_in; unsigned long total_in;
@@ -14,10 +19,10 @@ local function load()
         int data_type; unsigned long adler; unsigned long reserved;
       } kolibby_z_stream;
       const char *zlibVersion(void);
-      int inflateInit2_(kolibby_z_stream *, int, const char *, int);
-      int inflate(kolibby_z_stream *, int);
-      int inflateEnd(kolibby_z_stream *);
-      int inflateReset2(kolibby_z_stream *, int);
+      int inflateInit2_(void *, int, const char *, int);
+      int inflate(void *, int);
+      int inflateEnd(void *);
+      int inflateReset2(void *, int);
       int BrotliDecoderDecompress(size_t, const unsigned char *, size_t *, unsigned char *);
     ]]
     for _,name in ipairs({'z','libz.so','libz.dylib','libz.so.1'}) do
@@ -78,12 +83,14 @@ function M.decoder(kind,emit,limit)
     end
     if not zlib or kind~='gzip' and kind~='deflate' then failure() end
     local stream=ffi.new('kolibby_z_stream[1]')
+    -- handle does not keep stream alive: feed() and the finalizer below do.
+    local handle=ffi.cast('void *',stream)
     local bits=kind=='gzip' and 31 or 15
-    if zlib.inflateInit2_(stream,bits,zlib.zlibVersion(),ffi.sizeof('kolibby_z_stream'))~=0 then failure() end
+    if zlib.inflateInit2_(handle,bits,zlib.zlibVersion(),ffi.sizeof('kolibby_z_stream'))~=0 then failure() end
     local closed,ended=false,false
-    local guard=ffi.gc(ffi.new('char[1]'),function() if not closed then zlib.inflateEnd(stream) end end)
+    local guard=ffi.gc(ffi.new('char[1]'),function() if not closed then zlib.inflateEnd(ffi.cast('void *',stream)) end end)
     local function close()
-        if not closed then closed=true;zlib.inflateEnd(stream);ffi.gc(guard,nil) end
+        if not closed then closed=true;zlib.inflateEnd(handle);ffi.gc(guard,nil) end
     end
     local function fail() close();failure() end
     local output=ffi.new('unsigned char[32768]')
@@ -93,12 +100,12 @@ function M.decoder(kind,emit,limit)
         stream[0].next_in=ffi.cast('const unsigned char *',chunk);stream[0].avail_in=#chunk
         repeat
             if ended then
-                if kind~='gzip' or zlib.inflateReset2(stream,bits)~=0 then fail() end
+                if kind~='gzip' or zlib.inflateReset2(handle,bits)~=0 then fail() end
                 ended=false
             end
             stream[0].next_out=output;stream[0].avail_out=32768
             local before=stream[0].avail_in
-            local status=zlib.inflate(stream,0)
+            local status=zlib.inflate(handle,0)
             local produced=32768-stream[0].avail_out
             if produced>0 then write(ffi.string(output,produced)) end
             if status==1 then ended=true

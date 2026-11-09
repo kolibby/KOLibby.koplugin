@@ -5,6 +5,24 @@
 local C=require('kolibby/compression')
 local U=require('kolibby/util')
 local F=require('tests/compression_fixtures')
+-- Run in a fresh LuaJIT process for each order: by default these declarations
+-- come first; call compression.encodings() before requiring this module to put
+-- KOLibby's declarations first. All four zlib functions share that C namespace.
+local ffi=require('ffi')
+ffi.cdef[[
+  typedef struct kolibby_test_z_stream_s {
+    const unsigned char *next_in; unsigned int avail_in; unsigned long total_in;
+    unsigned char *next_out; unsigned int avail_out; unsigned long total_out;
+    const char *msg; void *state; void *zalloc; void *zfree; void *opaque;
+    int data_type; unsigned long adler; unsigned long reserved;
+  } kolibby_test_z_stream;
+  typedef kolibby_test_z_stream *kolibby_test_z_streamp;
+  const char *zlibVersion(void);
+  int inflateInit2_(kolibby_test_z_streamp strm, int windowBits, const char *version, int stream_size);
+  int inflate(kolibby_test_z_streamp strm, int flush);
+  int inflateEnd(kolibby_test_z_streamp strm);
+  int inflateReset2(kolibby_test_z_streamp strm, int windowBits);
+]]
 return function()
     local result={passed=0,failed=0,failures={},encodings=C.encodings()}
     local function test(name,fn)
@@ -21,6 +39,34 @@ return function()
     local expected=string.rep('KOLibby compression fixture: café 🌍\n',2500)
     local small='Native metadata café 🌍'
     local gzip=U.base64_decode(F.gzip)
+    test('gzip works beside another plugin\'s zlib declarations',function()
+        assert(decode('gzip',gzip,4096)==expected)
+        local z
+        for _,name in ipairs({'z','libz.so','libz.dylib','libz.so.1'}) do
+            local ok,lib=pcall(ffi.load,name);if ok then z=lib;break end
+        end
+        assert(z,'zlib is unavailable')
+        local s=ffi.new('kolibby_test_z_stream[1]')
+        assert(z.inflateInit2_(s,31,z.zlibVersion(),ffi.sizeof('kolibby_test_z_stream'))==0,'other plugin cannot use zlib')
+        local ok,err=pcall(function()
+            local out=ffi.new('unsigned char[?]',#expected+1)
+            for pass=1,2 do
+                s[0].next_in=ffi.cast('const unsigned char *',gzip);s[0].avail_in=#gzip
+                s[0].next_out=out;s[0].avail_out=#expected+1
+                assert(z.inflate(s,4)==1,'other plugin cannot inflate')
+                assert(ffi.string(out,#expected+1-s[0].avail_out)==expected)
+                if pass==1 then assert(z.inflateReset2(s,31)==0,'other plugin cannot reset zlib') end
+            end
+        end)
+        z.inflateEnd(s)
+        assert(ok,err)
+    end)
+    test('decoder retains its stream across garbage collection',function()
+        local out={};local feed,finish=C.decoder('gzip',function(s) out[#out+1]=s end)
+        feed(gzip:sub(1,17));collectgarbage('collect')
+        feed(gzip:sub(18));feed=nil;collectgarbage('collect')
+        finish();assert(table.concat(out)==expected)
+    end)
     test('identity binary',function() assert(decode('identity','a\0b',1)=='a\0b') end)
     test('gzip large output',function() assert(decode('gzip',gzip)==expected) end)
     test('gzip single-byte chunks',function() assert(decode('gzip',gzip,1)==expected) end)

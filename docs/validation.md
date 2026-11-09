@@ -39,6 +39,13 @@ Portable regressions also cover relative data-folder migration, FAT-compatible
 resource cache names, background task completion and cancellation, progress
 write throttling, network diagnostics and the configured TLS modes.
 
+Compression runtime checks reproduce the shared zlib declaration conflict before
+the fix and verify both plugin load orders afterward. Each run covers 18
+decompression checks, including another caller's stream and garbage collection,
+plus 16 local HTTPS checks. All six runs pass using the Kindle, Kindle PW2 and
+Kindle HF ARM runtimes from KOReader 2026.07.1. These are isolated user-mode ARM
+executions with synthetic traffic, rather than Kindle firmware or hardware tests.
+
 Bookshelf source tests cover loans and holds across all cards or a selected card,
 merged and removed cards, cached covers, existing and missing downloads, stale
 checkouts, picker cancellation, optional tokens and plugin-instance changes.
