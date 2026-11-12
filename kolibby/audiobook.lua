@@ -105,7 +105,9 @@ function M.run(client,loan,card,opts)
     local completed_bytes=0
     for i,part in ipairs(plan.parts) do
         part.file=work..'/parts/'..string.format('%04d.mp3',i)
-        if cache.files[tostring(i)]~=part.bytes or Store.size(part.file)~=part.bytes then
+        local expected=part.bytes
+        local saved=cache.files[tostring(i)]
+        if type(saved)~='number' or saved<=0 or saved>256*1024*1024 or Store.size(part.file)~=saved then
             local request=part.entry.request or {}
             if request.method and request.method~='GET' or request.body or not Covers.allowed(request.url or part.entry.url) then error('Unsupported native audiobook resource request',0) end
             progress('downloading',completed_bytes,plan.bytes,completed_bytes,'Part '..i..' of '..#plan.parts)
@@ -113,10 +115,27 @@ function M.run(client,loan,card,opts)
                 destination=part.file..'.part',max_bytes=256*1024*1024,
                 on_progress=function(bytes) progress('downloading',completed_bytes+bytes,plan.bytes,completed_bytes+bytes,'Part '..i..' of '..#plan.parts) end}
             if response.status~=200 then os.remove(part.file..'.part');client:failure(response) end
-            if Store.size(part.file..'.part')~=part.bytes then os.remove(part.file..'.part');error('An audiobook part was incomplete. Try again to resume.',0) end
+            local size=Store.size(part.file..'.part')
+            local headers={}
+            for name,value in pairs(response.headers or {}) do headers[name:lower()]=value end
+            local length=headers['content-length'] and tonumber(headers['content-length'])
+            local encoding=(headers['content-encoding'] or 'identity'):lower()
+            local wire_bytes=response.encoded_bytes or (encoding=='identity' and size or nil)
+            -- Roster byte counts can differ from the current resource. Validate
+            -- the actual transfer; MP3 frames and duration are checked below.
+            if not size or size<=0 or size>256*1024*1024 or response.bytes~=size or
+                headers['content-length'] and (not length or wire_bytes and wire_bytes~=length) then
+                os.remove(part.file..'.part');error('An audiobook part was incomplete. Try again to resume.',0)
+            end
+            part.bytes=size
+            if plan.bytes-expected+part.bytes>MAX_BYTES then os.remove(part.file..'.part');error('This audiobook exceeds the supported 3 GiB size.',0) end
             assert(os.rename(part.file..'.part',part.file),'Could not finish saving an audiobook part')
             cache.files[tostring(i)]=part.bytes;job:write('parts.json',cache)
+        else
+            part.bytes=saved
         end
+        plan.bytes=plan.bytes-expected+part.bytes
+        if plan.bytes>MAX_BYTES then error('This audiobook exceeds the supported 3 GiB size.',0) end
         completed_bytes=completed_bytes+part.bytes
         progress('downloading',completed_bytes,plan.bytes,completed_bytes,'Part '..i..' of '..#plan.parts)
     end

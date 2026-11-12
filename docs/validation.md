@@ -1,8 +1,14 @@
 # Validation
 
-The portable Lua suite has 214 passing tests. It covers shelf reconciliation,
+The portable Lua suite has 223 passing tests. It covers shelf reconciliation,
 multiple and partner cards, download queuing, publication assembly, audiobook
 output, networking, privacy and update handling. Tests use synthetic data.
+
+Audiobook download regressions exercise the complete download/check/join pipeline
+and a three-loan batch where roster byte counts differ from complete HTTP
+responses. They cover actual-size cache reuse, legacy cache entries, changed
+cached files, compressed transfer sizes, incomplete transfers, truncated frames
+and missing audio detected by the native duration check.
 
 Android checks have exercised pairing, shelf refresh, selected EPUB/MP3 downloads,
 menu placement, progress, cancellation and update installation. The Loans action
