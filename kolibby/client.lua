@@ -7,9 +7,10 @@ local Client={};Client.__index=Client
 Client.BASE="https://sentry.libbyapp.com/"
 Client.PROFILE=Profile
 function Client.new(opts)
-    return setmetatable({transport=assert(opts.transport),auth=U.copy(opts.auth or {}),save_auth=opts.save_auth or function() end},Client)
+    return setmetatable({transport=assert(opts.transport),auth=U.copy(opts.auth or {}),save_auth=opts.save_auth or function() end,close_transport=opts.close},Client)
 end
 function Client:save() self.save_auth(self.auth) end
+function Client:close() if self.close_transport then self.close_transport() end end
 function Client:acquire()
     local source=self.auth.identity or (self.auth.chip and "xxxxxx"..self.auth.chip) or "cudlkahllcnsjxhbmddl"
     local letters=source:gsub("[^a-z]",""):reverse()

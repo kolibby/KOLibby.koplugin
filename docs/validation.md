@@ -1,6 +1,6 @@
 # Validation
 
-The portable Lua suite has 223 passing tests. It covers shelf reconciliation,
+The portable Lua suite has 236 passing tests. It covers shelf reconciliation,
 multiple and partner cards, download queuing, publication assembly, audiobook
 output, networking, privacy and update handling. Tests use synthetic data.
 
@@ -65,3 +65,29 @@ circulation and download fixtures exercise hold confirmation, shelf refresh,
 download completion, Bookshelf's reader opener and return from the reader. These
 checks do not borrow a real hold or establish hardware compatibility on every
 device. The Bookshelf integration has also been confirmed on a Clear7.
+
+Concurrent Download all checks cover the three-loan limit, overlapping mixed-media
+workers, replenishing free slots, reordered completion, single-writer persistence,
+worker failures and interrupted-result recovery. The portable suite passes all
+236 tests. A real-process LuaJIT check on macOS passes 19 assertions, including
+group cancellation and recovery of a completed result interrupted before saving.
+
+The same real-process fixture passes all 19 assertions inside stock KOReader on an
+Android arm64 emulator, including Linux worker-parent protection. The three-loan
+progress dialog was also rendered and visually inspected with synthetic loan
+metadata. These concurrency checks use isolated files and make no live Libby
+requests; they do not establish hardware compatibility on Kobo or Kindle.
+
+Update-completion regressions cover the restart button on platforms with and
+without automatic restart, the manual-reopen reminder, and dispatching the normal
+KOReader Restart/Exit event only after confirmation. The portable suite passes all
+236 tests.
+
+All 14 isolated update checks also pass in the Android emulator with the new
+completion dialog. The rendered prompt was inspected, then its **Restart KOReader**
+button was tapped: KOReader's process exited and its activity closed. No live
+GitHub update or real plugin installation was used for this check.
+
+The release privacy check also covers interrupted credential handoffs: workers
+omit unchanged identities, and disconnecting removes the temporary handoff cache
+without deleting completed publications.

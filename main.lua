@@ -83,10 +83,11 @@ function KOLibby:addToMainMenu(items)
         self:reloadShelf();return self:rootItems()
     end}
 end
-function KOLibby:client()
+function KOLibby:client(options)
+    options=options or {}
     local http=Http.new()
-    return Client.new{auth=self.store:auth(),save_auth=function(auth) self.store:save_auth(auth) end,
-        transport=function(req) return http:request(req) end}
+    return Client.new{auth=options.auth or self.store:auth(),save_auth=options.save_auth or function(auth) self.store:save_auth(auth) end,
+        transport=function(req) return http:request(req) end,close=function() http:close() end}
 end
 function KOLibby:message(text) UIManager:show(InfoMessage:new{text=text}) end
 function KOLibby:closeWindow()
@@ -245,7 +246,10 @@ function KOLibby:showSettings()
         {text="Disconnect this plugin",callback=function()
             UIManager:show(ConfirmBox:new{text="Remove this plugin's saved Libby connection and shelf? Downloaded books will stay in the download folder.",ok_callback=function()
                 -- A sync still running would save its identity and shelf again.
-                self:preemptBackground();self:cancelPairing();self.store:forget();self.shelf=Model.empty();self.status={};self:notifyBookshelf();self:showRoot()
+                self:preemptBackground();self:cancelPairing()
+                -- Interrupted workers may have handed off refreshed credentials.
+                Store.remove_tree(self.cache_dir..'/batch')
+                self.store:forget();self.shelf=Model.empty();self.status={};self:notifyBookshelf();self:showRoot()
             end})
         end},
         {text="About KOLibby "..self.version,callback=function() self:message("KOLibby "..self.version.."\n\nA companion to the official Libby apps for native ebook and MP3 audiobook downloads.\n\nAGPL-3.0-only · KOLibby contributors\nhttps://github.com/kolibby/KOLibby.koplugin\n\nManage cards in any linked official Libby app. KOLibby synchronizes while KOReader is active and connected.") end},
@@ -303,7 +307,7 @@ function KOLibby:runTask(label,work,done,silent,show_progress)
             poll=function()
                 if not self.busy then return end
                 local p=self.store:read("progress.json",{})
-                local current=table.concat({p.stage or "",p.done or 0,p.total or 0,p.bytes or 0,p.detail or '',p.batch_index or 0},":")
+                local current=Progress.signature(p)
                 if current~=previous then widget:updateProgress(p);previous=current end
                 UIManager:scheduleIn(interval,poll)
             end
@@ -363,9 +367,16 @@ function KOLibby:installUpdate(release)
     end)
 end
 function KOLibby:promptRestart()
-    local text='The KOLibby update'..(self.installed_version and ' ('..self.installed_version..')' or '')..' is installed. '
-    if Device:canRestart() then UIManager:askForRestart(text..'Restart KOReader to use the update.')
-    else self:message(text..'Close KOReader completely and open it again to use the update.') end
+    local can_restart=Device:canRestart()
+    local text='The KOLibby update'..(self.installed_version and ' ('..self.installed_version..')' or '')..' is installed.\n\n'
+    UIManager:show(ConfirmBox:new{
+        text=text..(can_restart and 'Restart KOReader to use the update.' or 'KOReader will close. Open it again to use the update.'),
+        ok_text='Restart KOReader',cancel_text='Later',
+        ok_callback=function()
+            -- Use KOReader's normal shutdown flow so the reader and plugins
+            -- save their state, including on platforms without automatic restart.
+            UIManager:broadcastEvent(require('ui/event'):new(can_restart and 'Restart' or 'Exit'))
+        end})
 end
 function KOLibby:prepareShelf(client,response)
     local shelf=Model.merge(self.shelf,response or client:sync(),os.time())
@@ -502,9 +513,12 @@ function KOLibby:downloadAll(card_id)
         return self:runTask("Downloading your loans…",function()
             self.store:write("progress.json",{stage='batch_preparing',batch=true})
             local client=self:client();local shelf=self:prepareShelf(client)
+            client:close()
             self.store:write("shelf.json",shelf)
             return Batch.run(client,shelf,self.store:read("downloads.json",{}),{
                 card_id=card_id,directory=self.config.download_dir,cache_dir=self.cache_dir,cover_dir=self.cover_dir,
+                concurrency=Batch.CONCURRENCY,progress_interval=Progress.write_interval(self.eink),
+                client_factory=function(auth) return self:client{auth=auth,save_auth=function() end} end,
                 persist=function(downloads) self.store:write("downloads.json",downloads) end,
                 progress=self:progressWriter()})
         end,function(result)

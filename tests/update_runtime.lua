@@ -49,11 +49,23 @@ return function(fixtures,output,plugin)
   assert(Store.read_file(output..'/identity.json')=='synthetic private state')
   assert(Store.read_file(output..'/download.epub')=='synthetic download')
  end)
- if plugin and not require('device'):canRestart() then
-  test('unsupported automatic restart requests manual close and reopen',function()
-   local message
-   plugin.promptRestart({installed_version='0.5.1',message=function(_,value) message=value end})
-   assert(message and message:find('Close KOReader completely',1,true) and message:find('open it again',1,true))
+ if plugin then
+  test('completed update offers restart or normal exit with a reopen reminder',function()
+   local UI=require('ui/uimanager');local automatic=require('device'):canRestart()
+   local show,broadcast=UI.show,UI.broadcastEvent
+   local dialog,event
+   local ok,err=pcall(function()
+    UI.show=function(_,value) dialog=value end
+    UI.broadcastEvent=function(_,value) event=value end
+    plugin.promptRestart({installed_version='0.5.1'})
+    assert(dialog and dialog.ok_text=='Restart KOReader' and dialog.cancel_text=='Later')
+    assert(dialog.text:find('0.5.1',1,true) and not event)
+    if not automatic then assert(dialog.text:find('KOReader will close',1,true) and dialog.text:find('Open it again',1,true)) end
+    dialog.ok_callback()
+    assert(event and event.handler==(automatic and 'onRestart' or 'onExit'))
+   end)
+   UI.show=show;UI.broadcastEvent=broadcast
+   assert(ok,err)
   end)
  end
  return result

@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: AGPL-3.0-only
 return function(test,eq,fails,contains)
 local function backend()
-    local fs={mode_reads=0}
+    local fs={mode_reads=0,removed={}}
     function fs.attributes(path,field)
         if field=='size' then return 42 end
         return path:match('/download$') and 'file' or 'directory'
@@ -14,7 +14,7 @@ local function backend()
     end
     function fs.mkdir() return true end
     function fs.dir() return function() end end
-    function fs.rmdir() return true end
+    function fs.rmdir(path) fs.removed[#fs.removed+1]=path;return true end
     function fs.currentdir() return '/mnt/us/koreader' end
     return fs
 end
@@ -44,9 +44,12 @@ local function environment(options)
             getSettingsDir=function() return '/__kolibby_test_missing_settings__' end,
             getDataDir=function() return '/__kolibby_test_missing_data__' end}
         elseif name=='ui/uimanager' then return options.uimanager or {scheduleIn=function() end}
+        elseif name=='device' then return options.device or {}
+        elseif name=='ui/widget/confirmbox' and options.confirmbox then return options.confirmbox
+        elseif name=='ui/event' and options.event then return options.event
         elseif name=='ui/trapper' and options.trapper then return options.trapper
         elseif name:match('^ui/elements/.-_menu_order$') then return {tools={'read_timer','more_tools'}}
-        elseif name:match('^ui/') or name=='device' then return {}
+        elseif name:match('^ui/') then return {}
         else return require(name) end
     end
     local function start()
@@ -132,6 +135,41 @@ test('Bookshelf open callbacks retain KOLibby expiry and audiobook checks',funct
     record.expires=os.time()-1;plugin:openLoan(loan,open);eq(#opened,1);contains(messages[1],'loan period has ended')
     record.expires=loan.expires;record.kind='mp3';plugin:openLoan(loan,open);eq(#opened,1);contains(messages[2],'audio player')
 end)
+test('Disconnect clears interrupted credential handoffs while preserving downloaded files',function()
+    local rows,dialog,forgot
+    local env=environment{bundled=true,confirmbox={new=function(_,value) return value end},
+        uimanager={scheduleIn=function() end,show=function(_,value) dialog=value end}}
+    local plugin=env.start()
+    plugin.downloads.saved={path='/fixture/download'}
+    plugin.showMenu=function(_,_,value) rows=value end
+    plugin.preemptBackground=function() end;plugin.cancelPairing=function() end
+    plugin.store.forget=function() forgot=true end;plugin.showRoot=function() end
+    plugin:showSettings()
+    for _,row in ipairs(rows) do if row.text=='Disconnect this plugin' then row.callback() end end
+    assert(dialog);eq(#env.bundled.removed,0)
+    dialog.ok_callback()
+    assert(forgot);eq(#env.bundled.removed,1);eq(env.bundled.removed[1],plugin.cache_dir..'/batch')
+    eq(plugin.downloads.saved.path,'/fixture/download');assert(env.modules['kolibby/store'].exists('/fixture/download'))
+end)
+for _,automatic in ipairs({false,true}) do
+    test(automatic and 'Update completion restarts KOReader through its normal state-saving flow' or
+        'Update completion offers a button that closes KOReader when automatic restart is unavailable',function()
+        local shown,events={},{}
+        local env=environment{bundled=true,device={canRestart=function() return automatic end},
+            confirmbox={new=function(_,dialog) return dialog end},
+            event={new=function(_,name) return {name=name} end},
+            uimanager={scheduleIn=function() end,show=function(_,dialog) shown[#shown+1]=dialog end,
+                broadcastEvent=function(_,event) events[#events+1]=event.name end}}
+        local plugin=env.start();plugin.installed_version='0.7.3'
+        plugin:promptRestart()
+        eq(#shown,1);eq(#events,0)
+        local dialog=shown[1]
+        eq(dialog.ok_text,'Restart KOReader');eq(dialog.cancel_text,'Later')
+        contains(dialog.text,'0.7.3')
+        if not automatic then contains(dialog.text,'KOReader will close');contains(dialog.text,'Open it again') end
+        dialog.ok_callback();eq(#events,1);eq(events[1],automatic and 'Restart' or 'Exit')
+    end)
+end
 test('Input cannot cancel background sync; user actions and leaving the setup-code screen can',function()
     local Coordinator=require('kolibby/coordinator')
     local queue={}

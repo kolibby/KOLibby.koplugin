@@ -22,8 +22,20 @@ local function default_clock()
     return os.time
 end
 local function step(value)
-    return table.concat({tostring(value.stage),tostring(value.detail),tostring(value.batch_index),
-        type(value.item)=='table' and tostring(value.item.key) or ''},'\n')
+    local values={tostring(value.stage),tostring(value.detail),tostring(value.batch_index),
+        tostring(value.batch_downloaded),tostring(value.batch_completed),tostring(value.batch_running),
+        type(value.item)=='table' and tostring(value.item.key) or ''}
+    for _,p in ipairs(value.active or {}) do
+        values[#values+1]=table.concat({p.item.key,tostring(p.stage),tostring(p.detail)},':')
+    end
+    return table.concat(values,'\n')
+end
+function M.signature(value)
+    local values={step(value),tostring(value.done),tostring(value.total),tostring(value.bytes)}
+    for _,p in ipairs(value.active or {}) do
+        values[#values+1]=table.concat({tostring(p.done),tostring(p.total),tostring(p.bytes)},':')
+    end
+    return table.concat(values,'\n')
 end
 function M.throttle(write,options)
     options=options or {}

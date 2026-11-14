@@ -1,9 +1,9 @@
 -- Copyright (C) 2026 KOLibby contributors
 -- SPDX-License-Identifier: AGPL-3.0-only
--- Queue native downloads, saving every completed checkout before advancing.
+-- Queue native downloads; only the coordinator persists shared completion state.
 local Model=require('kolibby/model')
 local U=require('kolibby/util')
-local M={}
+local M={CONCURRENCY=3}
 local function eligible(shelf,loan,now)
     local card=Model.card_for(shelf,loan.card_id)
     return loan.downloadable and loan.checkout_id and loan.expires and loan.expires>now and not loan.stale and
@@ -28,49 +28,133 @@ function M.run(client,shelf,downloads,opts)
         local Store=require('kolibby/store')
         return Store.exists(path) and (Store.size(path) or 0)>0
     end
-    local plan=M.plan(shelf,downloads,{card_id=opts.card_id,exists=exists,now=opts.now})
-    local result={downloaded=0,already_downloaded=plan.already_downloaded,unavailable=plan.unavailable,failures={}}
     local download=opts.download or function(c,loan,card,options)
         return require(loan.media_type=='audiobook' and 'kolibby/audiobook' or 'kolibby/download').run(c,loan,card,options)
     end
-    local function progress(value,loan,index)
-        if not opts.progress then return end
-        local p=U.copy(value)
-        p.batch=true;p.batch_index=index;p.batch_total=#plan.queue
-        p.batch_downloaded=result.downloaded
-        if loan then p.item={key=loan.key,title=loan.title,author=loan.author,media_type=loan.media_type,cover_url=loan.cover_url} end
-        opts.progress(p)
+    local function valid(record,loan)
+        assert(Model.same_checkout(record,loan) and type(record.path)=='string' and exists(record.path),'The download did not produce a completed file')
+        return record
     end
-    for i,loan in ipairs(plan.queue) do
-        -- Recheck time/file state immediately before starting each queued loan.
-        if saved(downloads[loan.key],loan,exists) then result.already_downloaded=result.already_downloaded+1
-        elseif not eligible(shelf,loan,opts.now or os.time()) then result.unavailable=result.unavailable+1
-        else
-            progress({stage='authorizing',kind=loan.media_type=='audiobook' and 'mp3' or 'epub'},loan,i)
-            local options={directory=opts.directory,cache_dir=opts.cache_dir,cover_dir=opts.cover_dir,
-                progress=function(value) progress(value,loan,i) end}
-            local ok,record=pcall(function()
-                local value=download(client,loan,Model.card_for(shelf,loan.card_id),options)
-                assert(Model.same_checkout(value,loan) and type(value.path)=='string' and exists(value.path),'The download did not produce a completed file')
-                return value
-            end)
-            if ok then
-                local work=record.work;record.work=nil
-                downloads[loan.key]=record
-                -- Persistence errors stop the queue. Never advance with only an
-                -- in-memory completion record that cancellation could discard.
-                opts.persist(downloads)
-                result.downloaded=result.downloaded+1
-                if work then
-                    if opts.cleanup then opts.cleanup(work)
-                    else require('kolibby/store').remove_tree(work) end
-                end
-            else
-                result.failures[#result.failures+1]={key=loan.key,title=loan.title,message=U.error_message(record)}
-            end
+    local function save(record,loan)
+        local work=record.work;record.work=nil
+        downloads[loan.key]=record
+        -- One writer owns downloads.json and identity.json. A storage failure
+        -- stops the entire pool; workers never race these shared atomic files.
+        opts.persist(downloads)
+        if work then
+            if opts.cleanup then opts.cleanup(work)
+            else require('kolibby/store').remove_tree(work) end
         end
     end
-    progress({stage='batch_complete'},nil,#plan.queue)
+    local concurrency=math.max(1,math.min(M.CONCURRENCY,math.floor(opts.concurrency or 1)))
+    local pool=concurrency>1 and (opts.pool or require('kolibby/parallel').new(opts.cache_dir..'/batch',{interval=opts.progress_interval})) or nil
+    local function run()
+        -- Cancel all can stop the coordinator after a worker publishes its file
+        -- but before it is collected. Recover only complete, current checkouts.
+        if pool and pool.recover then
+            for _,outcome in ipairs(pool:recover()) do
+                local record=outcome.ok and type(outcome.value)=='table' and outcome.value.record
+                local loan=type(record)=='table' and shelf.loans[record.key]
+                if loan and eligible(shelf,loan,opts.now or os.time()) and saved(record,loan,exists) and not saved(downloads[loan.key],loan,exists) then
+                    save(record,loan)
+                end
+            end
+            pool:reset()
+        end
+        local plan=M.plan(shelf,downloads,{card_id=opts.card_id,exists=exists,now=opts.now})
+        local result={downloaded=0,already_downloaded=plan.already_downloaded,unavailable=plan.unavailable,failures={}}
+        local active,finished={},0
+        local function metadata(loan)
+            return {key=loan.key,title=loan.title,author=loan.author,media_type=loan.media_type,cover_url=loan.cover_url}
+        end
+        local function initial(loan)
+            return {stage='authorizing',kind=loan.media_type=='audiobook' and 'mp3' or 'epub'}
+        end
+        local function progress(value,loan,index)
+            if not opts.progress then return end
+            local p=U.copy(value)
+            p.batch=true;p.batch_index=index;p.batch_total=#plan.queue
+            p.batch_downloaded=result.downloaded;p.batch_completed=finished
+            if loan then p.item=metadata(loan) end
+            if pool then
+                p.active={}
+                for _,entry in ipairs(active) do
+                    local current=U.copy(entry.progress);current.item=metadata(entry.loan);current.batch_index=entry.index
+                    p.active[#p.active+1]=current
+                end
+                p.batch_running=#active
+            end
+            opts.progress(p)
+        end
+        local function options(loan,index,report)
+            return {directory=opts.directory,cache_dir=opts.cache_dir,cover_dir=opts.cover_dir,
+                progress=report or function(value) progress(value,loan,index) end}
+        end
+        local function complete(outcome,loan)
+            local record=outcome.ok and type(outcome.value)=='table' and outcome.value.record
+            local ok,value=pcall(valid,record,loan)
+            if outcome.ok and ok then
+                save(value,loan)
+                result.downloaded=result.downloaded+1
+                local v=outcome.value
+                -- Do not overwrite a newer identity refreshed by a sibling.
+                if v.auth and client.auth and client.auth.identity==v.base_identity and client.auth.chip==v.base_chip and
+                    (v.auth.identity~=v.base_identity or v.auth.chip~=v.base_chip) then
+                    client.auth=v.auth;client:save()
+                end
+            else
+                result.failures[#result.failures+1]={key=loan.key,title=loan.title,message=outcome.ok and U.error_message(value) or outcome.message}
+            end
+            finished=finished+1
+        end
+        local next_index=1
+        while next_index<=#plan.queue or #active>0 do
+            while next_index<=#plan.queue and #active<concurrency do
+                local index=next_index;local loan=plan.queue[index];next_index=next_index+1
+                -- Recheck time/file state immediately before starting each loan.
+                if saved(downloads[loan.key],loan,exists) then result.already_downloaded=result.already_downloaded+1;finished=finished+1
+                elseif not eligible(shelf,loan,opts.now or os.time()) then result.unavailable=result.unavailable+1;finished=finished+1
+                elseif pool then
+                    local auth=U.copy(client.auth)
+                    local handle=pool:start(index,function(report)
+                        -- Construct the network session after fork. Inherited
+                        -- keep-alive sockets and cookie jars must not be shared.
+                        local worker=assert(opts.client_factory,'A parallel download needs a client factory')(auth)
+                        local ok,record=pcall(download,worker,loan,Model.card_for(shelf,loan.card_id),options(loan,index,report))
+                        if worker.close then worker:close() end
+                        if not ok then error(record,0) end
+                        local changed=worker.auth and (worker.auth.identity~=(auth and auth.identity) or worker.auth.chip~=(auth and auth.chip))
+                        return {record=valid(record,loan),auth=changed and worker.auth or nil,
+                            base_identity=changed and auth and auth.identity or nil,base_chip=changed and auth and auth.chip or nil}
+                    end)
+                    active[#active+1]={handle=handle,loan=loan,index=index,progress=initial(loan)}
+                else
+                    progress(initial(loan),loan,index)
+                    local ok,record=pcall(download,client,loan,Model.card_for(shelf,loan.card_id),options(loan,index))
+                    complete(ok and {ok=true,value={record=record}} or {ok=false,message=U.error_message(record)},loan)
+                end
+            end
+            if pool and #active>0 then
+                -- Collect every completion before replenishing any worker slot.
+                for i=#active,1,-1 do
+                    local entry=active[i];local outcome=pool:poll(entry.handle)
+                    if outcome then complete(outcome,entry.loan);table.remove(active,i)
+                    else
+                        local p=pool:progress(entry.handle)
+                        if p.stage then entry.progress=p end
+                    end
+                end
+                local first=active[1]
+                if first then progress(first.progress,first.loan,first.index) end
+                if #active>=concurrency or next_index>#plan.queue then pool:wait() end
+            end
+        end
+        progress({stage='batch_complete'},nil,#plan.queue)
+        return result
+    end
+    local ok,result=pcall(run)
+    if pool then pool:close(ok) end
+    if not ok then error(result,0) end
     return result
 end
 function M.summary(result)

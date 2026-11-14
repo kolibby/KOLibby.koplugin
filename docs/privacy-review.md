@@ -10,3 +10,8 @@ file manifest. Development files and private state are excluded.
 Run `python3 tools/check-package.py` before preparing a release. Its automated
 checks complement a manual source and artifact review; they do not replace one.
 Preserve upstream attribution and the project's AGPL-3.0-only notices.
+
+Concurrent workers hand refreshed credentials to the coordinator only when the
+identity actually changes. Temporary handoff files use the private batch cache;
+successful batches remove them, and disconnecting KOLibby clears interrupted
+handoffs along with the saved connection. Completed publications are preserved.

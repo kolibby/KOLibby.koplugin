@@ -31,11 +31,13 @@ function M.new(item,cover_dir)
     local header=Book.header(item,cover_dir,width)
     if item.batch then header=Center:new{dimen=Geom:new{w=width,h=Screen:scaleBySize(150)},header} end
     local queue=item.batch and line(16) or VSpan:new{width=0}
+    local others=item.batch and Text:new{text='',face=Font:getFace('cfont',14),width=width,height=Screen:scaleBySize(14*6)} or VSpan:new{width=0}
     local bar=Progress:new{width=width,height=Screen:scaleBySize(12),percentage=0}
     local group=VGroup:new{align='left',not_focusable=true,parent=dialog,
         queue,header,VSpan:new{width=Screen:scaleBySize(18)},
         stage,VSpan:new{width=Screen:scaleBySize(8)},bar,
         VSpan:new{width=Screen:scaleBySize(8)},count,
+        VSpan:new{width=Screen:scaleBySize(item.batch and 10 or 0)},others,
         VSpan:new{width=Screen:scaleBySize(10)},
     }
     dialog:addWidget(group)
@@ -44,7 +46,17 @@ function M.new(item,cover_dir)
     dialog.onCancel=function() cancel();return true end
     dialog.updateProgress=function(self,value)
         if item.batch then
-            queue:setText(value.batch_total and value.batch_total>0 and string.format('Loan %d of %d · %d downloaded',value.batch_index,value.batch_total,value.batch_downloaded or 0) or 'Checking your loans…')
+            queue:setText(value.batch_total and value.batch_total>0 and
+                (value.batch_running~=nil and string.format('%d of %d finished · %d downloading',value.batch_completed or 0,value.batch_total,value.batch_running) or
+                string.format('Loan %d of %d · %d downloaded',value.batch_index,value.batch_total,value.batch_downloaded or 0)) or 'Checking your loans…')
+            local lines={}
+            for i,p in ipairs(value.active or {}) do
+                if i>1 then
+                    local status=Present.progress(p)
+                    lines[#lines+1]=p.item.title..' · '..status.stage..(p.total and p.total>0 and string.format(' · %d%%',math.floor(status.percentage*100)) or '')
+                end
+            end
+            others:setText(table.concat(lines,'\n'))
             if value.item and value.item.key~=self.current_key then
                 header[1]:free();header[1]=Book.header(value.item,cover_dir,width);self.current_key=value.item.key
             end
